@@ -1,9 +1,9 @@
 ---
-description: Check the kit's external dependencies + configured paths and report/fix what's missing (wikillm)
+description: Check the kit's external dependencies + configured paths and report/fix what's missing (cairn)
 argument-hint: "(optional) 'install' to auto-install missing shell deps after confirmation"
 ---
 
-# Wiki environment doctor (wikillm)
+# Wiki environment doctor (cairn)
 
 Verify everything the `/wiki-sync-*` and `/lodestar` commands need is present on **this** machine, and that
 the **configured paths** ([`.claude/wiki.config.sh`](../wiki.config.sh)) actually resolve. Run this first

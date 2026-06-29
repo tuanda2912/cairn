@@ -1,4 +1,4 @@
-# Second brain — operating manual (WikiLLM + code graph + feature map)
+# Cairn — second-brain operating manual (WikiLLM wiki + code graph + feature map)
 
 This is the **schema layer**: the operating manual an LLM reads when working in a project that adopted this
 kit. It turns a generic assistant into a disciplined second-brain maintainer. **Read this first.**

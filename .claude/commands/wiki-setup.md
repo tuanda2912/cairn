@@ -1,9 +1,9 @@
 ---
-description: Interactively point the wiki at YOUR paths (code repos, docs source, wiki dir) and persist them to a gitignored local override (wikillm)
+description: Interactively point the wiki at YOUR paths (code repos, docs source, wiki dir) and persist them to a gitignored local override (cairn)
 argument-hint: "(optional) inline overrides, e.g. code=~/projects/my-app docs=~/Documents/my-docs"
 ---
 
-# Configure wiki locations (wikillm)
+# Configure wiki locations (cairn)
 
 First-run (or whenever your paths move) setup. Two things: **(a)** persist where **this machine's** code /
 docs / wiki live to **`.claude/wiki.config.local.sh`** (gitignored, sourced last by

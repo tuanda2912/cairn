@@ -1,9 +1,9 @@
 ---
-description: List all second-brain projects (discovered by their wiki.context.md), optionally filtered by domain (wikillm)
+description: List all second-brain projects (discovered by their wiki.context.md), optionally filtered by domain (cairn)
 argument-hint: "(optional) a domain to filter by, e.g. fintech"
 ---
 
-# List projects (wikillm)
+# List projects (cairn)
 
 Discover every project that has a second brain built with this kit — by scanning for `wiki.context.md`
 files under your projects root — and list them with their **domain** and **topology**. Filter by domain.

@@ -1,9 +1,9 @@
 ---
-description: Sync raw source docs from the configured source into the mirror and re-ingest changes into the wiki (wikillm)
+description: Sync raw source docs from the configured source into the mirror and re-ingest changes into the wiki (cairn)
 argument-hint: "(optional) a file/topic to focus the ingest on"
 ---
 
-# Sync source docs → wiki (wikillm)
+# Sync source docs → wiki (cairn)
 
 Pull the latest **source docs** (requirements / ADRs / design docs / papers — whatever the wiki is built
 from) from the configured **raw source** into the local mirror, detect what genuinely changed, and

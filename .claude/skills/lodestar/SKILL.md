@@ -1,9 +1,9 @@
 ---
-description: Build or refresh the feature→file traceability layer of a WikiLLM second brain — maps each user-facing feature to the capabilities/services/files that implement it (+ status & gaps), reusing the understand-anything code graph. Use when the user wants a feature→file map, a change-impact/blast-radius map, or to answer "if I change feature X, what moves?".
+description: Build or refresh the feature→file traceability layer of a Cairn second brain — maps each user-facing feature to the capabilities/services/files that implement it (+ status & gaps), reusing the understand-anything code graph. Use when the user wants a feature→file map, a change-impact/blast-radius map, or to answer "if I change feature X, what moves?".
 argument-hint: "(optional) a feature to drill into (e.g. 'Vault RAG'), or 'refresh' / 'lint'"
 ---
 
-# /lodestar — feature → file traceability for a WikiLLM second brain
+# /lodestar — feature → file traceability for a Cairn second brain
 
 Karpathy's LLM-wiki pattern maintains a knowledge base but **never maps a feature to the code that
 implements it**. This skill is the lodestar that orients you from intent to implementation: a thin, durable

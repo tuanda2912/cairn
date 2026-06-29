@@ -1,9 +1,9 @@
 ---
-description: Run the full wiki sync in one go — source docs, then code understanding, then the feature map (wikillm)
+description: Run the full wiki sync in one go — source docs, then code understanding, then the feature map (cairn)
 argument-hint: "(optional) target repo for the code sync (default main)"
 ---
 
-# Sync everything → wiki (wikillm)
+# Sync everything → wiki (cairn)
 
 One command that runs **all the wiki sync steps in order** so the second brain is fully refreshed without
 invoking each by hand: source docs first, then code understanding, then the feature→file map.

@@ -1,9 +1,9 @@
 ---
-description: Run an incremental understand-anything update on the code, then re-derive the wiki code-map pages (wikillm)
+description: Run an incremental understand-anything update on the code, then re-derive the wiki code-map pages (cairn)
 argument-hint: "(optional) target repo: a CODE_* alias (e.g. main) or a literal path"
 ---
 
-# Sync code understanding → wiki (wikillm)
+# Sync code understanding → wiki (cairn)
 
 Refresh the **code knowledge graph** with understand-anything's **incremental update** — it re-analyzes only
 the files changed since the graph's last commit (NOT a full re-scan) — then **re-derive the wiki's code-map

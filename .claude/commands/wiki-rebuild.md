@@ -1,9 +1,9 @@
 ---
-description: Bootstrap/regenerate the whole wiki from the raw sources + code knowledge graph — for a fresh machine or a lost wiki (wikillm)
+description: Bootstrap/regenerate the whole wiki from the raw sources + code knowledge graph — for a fresh machine or a lost wiki (cairn)
 argument-hint: "(optional) 'force' to regenerate even if wiki pages already exist"
 ---
 
-# Rebuild the wiki from scratch (wikillm)
+# Rebuild the wiki from scratch (cairn)
 
 Regenerate the **entire** wiki (the Karpathy *bootstrap*) from the raw sources + the code knowledge graph.
 Unlike `/wiki-sync-docs` (incremental doc ingest) and `/wiki-sync-code` (incremental code re-derive), this

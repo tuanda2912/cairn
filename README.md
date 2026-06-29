@@ -1,28 +1,37 @@
-# wikillm-framework — a self-maintaining second brain that maps features to files
+# Cairn 🪨
 
-A portable kit for an LLM-maintained **second brain** that does what [Karpathy's LLM-wiki
-pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) alone doesn't: it links the
-**knowledge wiki** to the **code**, so you can answer *"if I change feature X, which files move?"* — including
-the cross-service edges grep and the compiler can't see.
+> A self-maintaining second brain that maps every feature to the files that implement it.
 
-It's three layers. Clone this, install one plugin, edit one config, and run.
+A **cairn** is a stack of stones travelers build to mark a route across terrain that has no obvious path —
+a durable waymarker left for whoever comes next. This kit does the same for a codebase: it marks the
+**intent**, the **gaps**, and the **cross-service seams** you can't grep — and keeps those markers honest as
+the code moves underneath them. Ask it *"if I change feature X, which files move?"* and get a precomputed,
+staleness-checked answer, **including the edges grep and the compiler can't see.**
 
-| # | Layer | Driven by | Where |
-|---|---|---|---|
-| 1 | **Code graph** | [understand-anything](https://github.com/Lum1104/Understand-Anything) (`/understand`) | external plugin (install once — below) |
-| 2 | **WikiLLM wiki** (the second brain) | the Karpathy three-layer pattern | **`CLAUDE.md`** (the operating manual, in this repo) |
-| 3 | **Feature → file map** | **`/lodestar`** skill + `feature-mapper` agent | `.claude/` (in this repo) |
+Cairn builds on [Karpathy's WikiLLM pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
+but adds the thing that pattern alone never does: it **links the knowledge wiki to the code**.
+
+It's three layers. Clone it, install one plugin, edit one config, and run.
+
+| # | Layer | What it is | Driven by | Where |
+|---|---|---|---|---|
+| 1 | **Code graph** | a knowledge graph of the codebase (files, layers, tags, summaries) | [understand-anything](https://github.com/Lum1104/Understand-Anything) (`/understand`) | external plugin (install once — below) |
+| 2 | **WikiLLM wiki** | the LLM-maintained knowledge base | Karpathy's three-layer pattern | **`CLAUDE.md`** (the operating manual, in this repo) |
+| 3 | **Feature → file map** | feature → capability → files (+ status & gaps) | **`/lodestar`** skill + `feature-mapper` agent | `.claude/` (in this repo) |
 
 > Read **[`CLAUDE.md`](CLAUDE.md)** first — it's the schema that ties the three layers together and tells the
 > LLM how to build and maintain the wiki. This README is the quick start.
 
-## Why it exists
+## Why Cairn exists
 
 - A code graph tells you *what the code is*, but not *which feature it serves* or *what's missing*. Grep
   finds code that exists; it can never surface a feature with **no** code (a gap).
 - In **microservices**, cross-service calls go over a wire/API/event boundary — invisible to grep, and (when
   polyglot) invisible to the compiler too. The change-set for a feature spanning services is un-recoverable
-  from any single source. `/lodestar` precomputes exactly that.
+  from any single source. Cairn precomputes exactly that.
+- A plain wiki **rots**. Cairn **fails closed on staleness**: every map is stamped with the graph commit it
+  was built from and refuses-or-warns when that lags `HEAD`. A map resolved through a stale graph is worse
+  than honest grep — so Cairn won't pretend.
 
 ## The model
 
@@ -50,7 +59,7 @@ Install the understand-anything plugin (layer 1) — it's not bundled (it's a wh
 # in Claude Code:
 /plugin marketplace add Lum1104/Understand-Anything
 /plugin install understand-anything
-# needs Node ≥ 22 and pnpm ≥ 10 (the plugin builds a local core package on first run)
+# needs Node ≥ 22 and pnpm ≥ 10 (the plugin builds a local core package on its first run)
 ```
 
 (See the [understand-anything repo](https://github.com/Lum1104/Understand-Anything) for Codex/Gemini/other-CLI
@@ -58,9 +67,9 @@ install paths.)
 
 ## Per-workspace quick start
 
-> **It lives at the workspace root, not inside a code repo.** A *workspace* is the dir that holds `.claude/`
-> + `wiki/` + `wiki.context.md`, sitting **beside or above** your code repo(s). The brain must never land
-> inside a pushable code repo.
+> **Cairn lives at the workspace root, not inside a code repo.** A *workspace* is the dir that holds
+> `.claude/` + `wiki/` + `wiki.context.md`, sitting **beside or above** your code repo(s). The brain must
+> never land inside a pushable code repo.
 
 Concrete layout (the default `CODE_MAIN="../code"` assumes code is a **sibling** of the workspace):
 
@@ -74,7 +83,7 @@ parent/
 ```bash
 # 1. drop the kit at your WORKSPACE root (beside/above the code repo(s) — never inside one)
 #    includes a starter wiki/ so the commands have somewhere to write
-cp -R wikillm-framework/.claude  wikillm-framework/wiki  wikillm-framework/CLAUDE.md  wikillm-framework/wiki.context.md  /path/to/workspace/
+cp -R cairn/.claude  cairn/wiki  cairn/CLAUDE.md  cairn/wiki.context.md  /path/to/workspace/
 
 # 2. point it at your project + check deps (run from the WORKSPACE root)
 /wiki-setup        # interactive — writes a gitignored local path override + scaffolds wiki.context.md
@@ -103,7 +112,7 @@ cp -R wikillm-framework/.claude  wikillm-framework/wiki  wikillm-framework/CLAUD
 ## What's in here
 
 ```
-CLAUDE.md                    the WikiLLM operating manual — GENERIC, never edit per project
+CLAUDE.md                    Cairn's operating manual (the schema layer) — GENERIC, never edit per project
 wiki.context.md              THE per-project profile you fill (name · domain · topology · sources · glossary · rules)
 wiki/                        the knowledge base (ships as an empty starter; /wiki-rebuild populates it)
 .claude/
@@ -123,7 +132,7 @@ examples/
     lodestar.config.json     its filled-in manifest
 ```
 
-### Wiki-maintenance commands (layer 2)
+### Commands (layer 2)
 
 | Command | Does |
 |---|---|
@@ -134,11 +143,14 @@ examples/
 | `/wiki-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
 | `/wiki-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
 | `/wiki-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
+| `/lodestar` | build/refresh the feature→file map (layer 3) — the part with Cairn's name on it |
 
 ## Principles (the rules that keep it from rotting)
 
 - **Persist what you can't grep; let agentic search do the rest.** Intent, gaps, cross-service contracts —
-  not a code-search index.
+  not a code-search index. The live source stays the index for "which files implement this *now*."
+- **Compile once, read many.** A well-structured wiki page beats re-deriving from raw sources (or RAG) every
+  time. That's the whole point of the pattern.
 - **Fail-closed on staleness.** A map resolved through a stale graph is worse than grep. Stamp the commit;
   refuse-or-warn when it lags HEAD (`query-graph.mjs stale`).
 - **Capability = stable; feature-ID = volatile.** Never write feature-IDs onto files.
@@ -149,7 +161,8 @@ examples/
 
 ## Provenance
 
-Built on Karpathy's LLM-wiki pattern + understand-anything code graphs. Maintenance mechanics (the
+Built on [Karpathy's WikiLLM pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) +
+[understand-anything](https://github.com/Lum1104/Understand-Anything) code graphs. Maintenance mechanics (the
 `@generated` sentinel markers, the link-integrity / index-consistency lint) borrow from the broader
-WikiLLM-second-brain ecosystem; the feature→file + code-graph + computed-staleness seam is the part those
-tools don't cover.
+WikiLLM-second-brain ecosystem; the **feature→file + code-graph + computed-staleness seam** is the part those
+tools don't cover — and the part Cairn exists to be.
