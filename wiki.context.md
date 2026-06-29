@@ -1,7 +1,7 @@
 ---
 name: <your-project>
 domain: <one tag — e.g. fintech · audio-ml · devtools · healthcare · infra>
-topology: <monolith | microservices>   # /wiki-setup auto-detects + you confirm
+topology: <monolith | microservices>   # /cairn-setup auto-detects + you confirm
 status: active                          # active | paused | archived
 updated: <YYYY-MM-DD>
 ---
@@ -10,9 +10,9 @@ updated: <YYYY-MM-DD>
 
 > **The one file you fill in per project.** The generic framework (`CLAUDE.md`, the skills, the commands)
 > reads this to tailor the wiki to *this* project — everything project-specific lives here, so the framework
-> itself stays untouched and reusable. Scaffolded by `/wiki-setup`; edit freely.
+> itself stays untouched and reusable. Scaffolded by `/cairn-setup`; edit freely.
 >
-> The **frontmatter** above is machine-readable: `/wiki-projects` lists every project by its `domain` +
+> The **frontmatter** above is machine-readable: `/cairn-projects` lists every project by its `domain` +
 > `topology` straight from these fields. Keep them filled.
 
 ## What this project is

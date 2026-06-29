@@ -47,7 +47,7 @@ Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `C
    `.claude/wiki.config.sh`). Emit only the assignments the user set, each double-quoted, with the **Write**
    tool:
    ```sh
-   # .claude/wiki.config.local.sh — machine-specific wiki paths (gitignored; written by /wiki-setup).
+   # .claude/wiki.config.local.sh — machine-specific wiki paths (gitignored; written by /cairn-setup).
    # Overrides the defaults in .claude/wiki.config.sh. Safe to delete to fall back to defaults.
    CODE_MAIN="$HOME/projects/my-app"
    DOCS_SOURCE="$HOME/Documents/my-docs"
@@ -63,12 +63,12 @@ Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `C
      ```
      Show the user the proposal + the signals it found (polyglot? docker-compose? monorepo?), and let them
      **confirm** `monolith` / `microservices`. If no graph yet, leave `topology` blank and detect on the next run.
-   - **Ask** for `name` + `domain` (one tag — what `/wiki-projects` filters on).
+   - **Ask** for `name` + `domain` (one tag — what `/cairn-projects` filters on).
    - Write `name` / `domain` / `topology` / `status` / `updated` into the **frontmatter**, and prompt the
      user to fill the prose sections (what it is · sources · organization · glossary). Mirror `topology` into
      `lodestar.config.json` too.
 
-6. **Verify** by running the probe (or invoke **`/wiki-doctor`**):
+6. **Verify** by running the probe (or invoke **`/cairn-doctor`**):
    ```bash
    . .claude/wiki.config.sh
    echo "code:main   → $(resolve_code_repo main)"
@@ -76,12 +76,12 @@ Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `C
    ```
 
 7. **Summarise**: what was written (the path override + `wiki.context.md`), the detected topology + domain,
-   and the next step — **`/wiki-doctor`** to confirm tools, then **`/understand <code>`** +
-   **`/wiki-sync-all`** (or **`/wiki-rebuild`**) to populate the wiki, then **`/lodestar`**.
+   and the next step — **`/cairn-doctor`** to confirm tools, then **`/understand <code>`** +
+   **`/cairn-sync-all`** (or **`/cairn-rebuild`**) to populate the wiki, then **`/lodestar`**.
 
 ## Guardrails
 - Writes **only** `.claude/wiki.config.local.sh` (assignment lines). Never edits the committed
   `wiki.config.sh`, the wiki, code, or docs content.
 - The local override is **gitignored on purpose** — it holds personal absolute paths. Don't commit it,
-  don't copy it to another machine (each machine runs `/wiki-setup` for its own paths).
+  don't copy it to another machine (each machine runs `/cairn-setup` for its own paths).
 - No paths given and nothing to change ⇒ report the current config and stop (no file written).

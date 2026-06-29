@@ -9,7 +9,7 @@ Discover every project that has a second brain built with this kit — by scanni
 files under your projects root — and list them with their **domain** and **topology**. Filter by domain.
 
 There is **no central registry**: each project's `wiki.context.md` frontmatter IS the record, so the list is
-always current and nothing drifts. (A project shows up once its `/wiki-setup` has scaffolded + filled its
+always current and nothing drifts. (A project shows up once its `/cairn-setup` has scaffolded + filled its
 `wiki.context.md`.)
 
 Caller hint: **$ARGUMENTS** — an optional domain to filter by.
@@ -26,7 +26,7 @@ Caller hint: **$ARGUMENTS** — an optional domain to filter by.
    node .claude/lib/list-projects.mjs "$ROOT" ${DOMAIN:+--domain "$DOMAIN"}
    ```
 2. Present the table (NAME · DOMAIN · TOPOLOGY · STATUS · PATH). If filtering by domain, say so. If none are
-   found, point the user at **`/wiki-setup`** (run in a project to scaffold its `wiki.context.md`, which is
+   found, point the user at **`/cairn-setup`** (run in a project to scaffold its `wiki.context.md`, which is
    what registers it) and check that `PROJECTS_ROOT` in `.claude/wiki.config.sh` points where your projects live.
 
 ## Notes

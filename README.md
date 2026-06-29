@@ -94,22 +94,22 @@ parent/
 cp -R cairn/.claude  cairn/wiki  cairn/CLAUDE.md  cairn/wiki.context.md  /path/to/workspace/
 
 # 2. point it at your project + check deps (run from the WORKSPACE root)
-/wiki-setup        # interactive — writes a gitignored local path override + scaffolds wiki.context.md
-/wiki-doctor       # verifies node + the understand-anything plugin + that paths resolve
+/cairn-setup        # interactive — writes a gitignored local path override + scaffolds wiki.context.md
+/cairn-doctor       # verifies node + the understand-anything plugin + that paths resolve
 #   also edit .claude/skills/lodestar/lodestar.config.json: topology, services[], contracts[]
 #   (topology auto-detects once the graph exists — step 3; until then it's left blank and /lodestar confirms it)
 
 # 3. build the code graph (layer 1)
-/understand /path/to/code-repo            # or: /wiki-sync-code
+/understand /path/to/code-repo            # or: /cairn-sync-code
 
 # 4. BOOTSTRAP the wiki (layer 2) — authors every page from your sources + the graph
-/wiki-rebuild                             # the starter wiki/ is empty until you do this
+/cairn-rebuild                             # the starter wiki/ is empty until you do this
 
 # 5. map features → files (layer 3)
 /lodestar
 
 # keep it fresh later — one shot, incremental:
-/wiki-sync-all     # docs → code → /lodestar
+/cairn-sync-all     # docs → code → /lodestar
 ```
 
 `/lodestar` runs a fail-closed staleness check, derives the capability layer from the graph, has the
@@ -122,16 +122,16 @@ cp -R cairn/.claude  cairn/wiki  cairn/CLAUDE.md  cairn/wiki.context.md  /path/t
 ```
 CLAUDE.md                    Cairn's operating manual (the schema layer) — GENERIC, never edit per project
 wiki.context.md              THE per-project profile you fill (name · domain · topology · sources · glossary · rules)
-wiki/                        the knowledge base (ships as an empty starter; /wiki-rebuild populates it)
+wiki/                        the knowledge base (ships as an empty starter; /cairn-rebuild populates it)
 .claude/
   wiki.config.sh             portable path config — code repo(s), docs source, wiki dir, projects root
-  commands/                  wiki-maintenance commands (layer-2 automation):
-    wiki-setup · wiki-doctor · wiki-sync-docs · wiki-sync-code · wiki-sync-all · wiki-rebuild · wiki-projects
+  commands/                  maintenance commands (layer-2 automation):
+    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-projects
   skills/lodestar/
     SKILL.md                 the /lodestar procedure + canonical output template
     lodestar.config.json     the per-project routing manifest (topology · services · contracts)
     query-graph.mjs          deterministic helper: staleness gate · graph slices · topology detection
-  lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /wiki-projects)
+  lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /cairn-projects)
   lib/aggregate-graphs.mjs   multi-repo: per-repo staleness + service partition (powers /lodestar on N repos)
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
 ```
@@ -140,13 +140,13 @@ wiki/                        the knowledge base (ships as an empty starter; /wik
 
 | Command | Does |
 |---|---|
-| `/wiki-setup` | interactively point the kit at your code/docs/wiki paths (writes a gitignored local override) |
-| `/wiki-doctor` | check deps (node/pnpm, the understand-anything plugin) + that paths resolve; offer to install |
-| `/wiki-sync-docs` | pull raw source docs, checksum-diff, re-ingest the changes into the wiki |
-| `/wiki-sync-code` | incremental `/understand` update → re-derive the wiki's code-map pages |
-| `/wiki-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
-| `/wiki-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
-| `/wiki-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
+| `/cairn-setup` | interactively point the kit at your code/docs/wiki paths (writes a gitignored local override) |
+| `/cairn-doctor` | check deps (node/pnpm, the understand-anything plugin) + that paths resolve; offer to install |
+| `/cairn-sync-docs` | pull raw source docs, checksum-diff, re-ingest the changes into the wiki |
+| `/cairn-sync-code` | incremental `/understand` update → re-derive the wiki's code-map pages |
+| `/cairn-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
+| `/cairn-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
+| `/cairn-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
 | `/lodestar` | build/refresh the feature→file map (layer 3) — the part with Cairn's name on it |
 
 ## Principles (the rules that keep it from rotting)

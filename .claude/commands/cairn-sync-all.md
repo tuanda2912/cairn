@@ -14,19 +14,19 @@ Optional `$ARGUMENTS` is passed through to the code sync as its target (default 
 ## Procedure (run from the workspace root)
 
 1. **Preflight.** Confirm the core tools + wiki are present; if anything's missing, **stop** and point to
-   **`/wiki-doctor`**:
+   **`/cairn-doctor`**:
    ```bash
    [ -f .claude/wiki.config.sh ] && . .claude/wiki.config.sh
    : "${WIKI_DIR:=wiki}"
-   [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /wiki-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
-   command -v node >/dev/null || { echo "⚠️ node missing — run /wiki-doctor first."; exit 1; }
+   [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /cairn-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
+   command -v node >/dev/null || { echo "⚠️ node missing — run /cairn-doctor first."; exit 1; }
    ```
 
-2. **Sync source docs.** Invoke **`/wiki-sync-docs`** and let it run to completion (source → mirror →
+2. **Sync source docs.** Invoke **`/cairn-sync-docs`** and let it run to completion (source → mirror →
    ingest changed docs into the wiki, or report "already current"). Skip with a note if no raw-docs source
    is configured (sources may live in the code repo).
 
-3. **Sync code understanding.** Then invoke **`/wiki-sync-code`** with the target from `$ARGUMENTS` (default
+3. **Sync code understanding.** Then invoke **`/cairn-sync-code`** with the target from `$ARGUMENTS` (default
    `main`): incremental understand-anything update → re-derive the wiki code-map pages, or report "graph up
    to date".
 
@@ -42,6 +42,6 @@ Optional `$ARGUMENTS` is passed through to the code sync as its target (default 
 > say "second brain already fully in sync."
 
 ## Guardrails
-- Delegates to `/wiki-sync-docs`, `/wiki-sync-code`, `/lodestar`; their guardrails apply (wiki stays
+- Delegates to `/cairn-sync-docs`, `/cairn-sync-code`, `/lodestar`; their guardrails apply (wiki stays
   **outside** the code repos; docs→wiki and code→wiki only; never modify source).
 - If a step reports a blocker, **stop** rather than pressing on.

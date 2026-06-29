@@ -7,5 +7,5 @@ node_modules/
 # If you rename DOCS_MIRROR in .claude/wiki.config.sh, add that path here too.
 raw-docs/
 
-# machine-specific wiki paths (written by /wiki-setup)
+# machine-specific wiki paths (written by /cairn-setup)
 .claude/wiki.config.local.sh

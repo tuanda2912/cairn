@@ -1,21 +1,21 @@
-# wiki.config.sh — where the /wiki-* commands look for things.
+# wiki.config.sh — where the /cairn-* commands look for things.
 # Sourced from the WORKSPACE ROOT. Edit the values to point at where your code / docs / wiki actually
 # live. Paths may be RELATIVE to the workspace root or ABSOLUTE; $HOME and a leading ~ are expanded.
 # Leave a value blank to fall back to its default.
 #
 # Safe to commit (defaults are generic). For machine-specific ABSOLUTE paths, DON'T edit this file —
-# run `/wiki-setup` (or hand-write `.claude/wiki.config.local.sh`), which is gitignored and sourced
+# run `/cairn-setup` (or hand-write `.claude/wiki.config.local.sh`), which is gitignored and sourced
 # last to override these defaults. That keeps your local paths out of the shared repo.
 
 # 1) The wiki knowledge base (relative to this repo root, or absolute).
 WIKI_DIR="wiki"
 
-# 1b) Where your projects live — scanned by /wiki-projects to list every project that has a
+# 1b) Where your projects live — scanned by /cairn-projects to list every project that has a
 #     wiki.context.md (its frontmatter = name/domain/topology). Point at the parent of your repos.
 #         PROJECTS_ROOT="$HOME/Documents/project"
 PROJECTS_ROOT="$HOME"
 
-# 2) Code repositories in THIS WORKSPACE — analyzed by /wiki-sync-code, /wiki-rebuild, and /lodestar.
+# 2) Code repositories in THIS WORKSPACE — analyzed by /cairn-sync-code, /cairn-rebuild, and /lodestar.
 #    The framework lives at the WORKSPACE root (beside/above the code) — NEVER inside a code repo.
 #    A MONOLITH workspace has one repo; a MICROSERVICES workspace has several. One CODE_<ALIAS> var per
 #    repo (path relative to this workspace root, or absolute), and list every alias in CODE_REPOS so the
@@ -66,7 +66,7 @@ resolve_docs_source() {
   fi
 }
 
-# --- machine-specific overrides (gitignored; written by /wiki-setup) ---
+# --- machine-specific overrides (gitignored; written by /cairn-setup) ---
 # Sourced LAST so it overrides the defaults above. (Use `if/fi`, not `&&`, so sourcing always returns
 # success even when no override exists.)
 if [ -f .claude/wiki.config.local.sh ] ; then . .claude/wiki.config.local.sh ; fi

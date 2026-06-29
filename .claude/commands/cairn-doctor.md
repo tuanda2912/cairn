@@ -5,7 +5,7 @@ argument-hint: "(optional) 'install' to auto-install missing shell deps after co
 
 # Wiki environment doctor (cairn)
 
-Verify everything the `/wiki-sync-*` and `/lodestar` commands need is present on **this** machine, and that
+Verify everything the `/cairn-sync-*` and `/lodestar` commands need is present on **this** machine, and that
 the **configured paths** ([`.claude/wiki.config.sh`](../wiki.config.sh)) actually resolve. Run this first
 thing after cloning the kit onto a new machine, or after changing the config. Report what's missing,
 **where to get it**, and offer to install the shell-installable pieces.
@@ -33,9 +33,9 @@ else warn "docs-source" "no raw-docs source configured (fine if your sources liv
 
 echo "Core CLI:"
 command -v git   >/dev/null && ok git   "$(git --version)"                       || no git   "https://git-scm.com  (or: xcode-select --install)"
-command -v rsync >/dev/null && ok rsync "$(rsync --version 2>/dev/null|head -1)"   || warn rsync "only needed by /wiki-sync-docs; ships with macOS, else apt/brew install rsync"
+command -v rsync >/dev/null && ok rsync "$(rsync --version 2>/dev/null|head -1)"   || warn rsync "only needed by /cairn-sync-docs; ships with macOS, else apt/brew install rsync"
 
-echo "Code sync (/wiki-sync-code, /lodestar):"
+echo "Code sync (/cairn-sync-code, /lodestar):"
 command -v node >/dev/null && { v=$(node -v|tr -d v); ok node "v$v"; [ "${v%%.*}" -ge 22 ] || warn node "need ≥22 (have v$v)"; } || no node "brew install node   (≥22)"
 command -v pnpm >/dev/null && { p=$(pnpm -v); ok pnpm "$p"; [ "${p%%.*}" -ge 10 ] || warn pnpm "need ≥10 (have $p)"; } || warn pnpm "only for the understand-anything plugin's FIRST build — skip if the plugin already built. corepack enable pnpm (or npm i -g pnpm)"
 ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* >/dev/null 2>&1 \
@@ -52,7 +52,7 @@ MD="$HOME/.local/bin/markitdown"; { [ -x "$MD" ] || MD=$(command -v markitdown);
 Summarise: which commands are **ready** vs **blocked**, and by what.
 
 - **Configured-path misses** — if `wiki`/`docs-source`/`code:main` didn't resolve, the path points at the
-  wrong place (or you're not at the workspace root). Easiest fix: **`/wiki-setup`** (writes the gitignored
+  wrong place (or you're not at the workspace root). Easiest fix: **`/cairn-setup`** (writes the gitignored
   local override); or set the variable by hand (`CODE_MAIN`, `DOCS_SOURCE`/`CLOUD_DOCS_NAME`).
 - **Shell-installable** (`node`, `pnpm`, and optionally `uv`, `markitdown`) — if missing and the user said
   `install` (or agrees), run the matching command for **each missing one**, then re-run Step 1. ⚠️
@@ -60,8 +60,8 @@ Summarise: which commands are **ready** vs **blocked**, and by what.
 - **Not auto-installable** — explain these must be done by the user:
   - **understand-anything plugin** — `/plugin marketplace add Lum1104/Understand-Anything` then
     `/plugin install understand-anything` (https://github.com/Lum1104/Understand-Anything).
-  - **The wiki itself** — `/wiki-sync-*` *maintain* the wiki; they don't bootstrap it. Carry `$WIKI_DIR/`
-    over (recommended), or use **`/wiki-rebuild`** to regenerate it from sources + code graph.
+  - **The wiki itself** — `/cairn-sync-*` *maintain* the wiki; they don't bootstrap it. Carry `$WIKI_DIR/`
+    over (recommended), or use **`/cairn-rebuild`** to regenerate it from sources + code graph.
 
 ## Step 3 — Verify
 After any installs/config fixes, re-run Step 1 and confirm every row the commands need is ✅.

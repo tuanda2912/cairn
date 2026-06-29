@@ -25,11 +25,11 @@ Optional focus from the caller: **$ARGUMENTS** (if given, prioritise that file/t
    [ -f .claude/wiki.config.sh ] && . .claude/wiki.config.sh
    : "${WIKI_DIR:=wiki}" ; : "${DOCS_MIRROR:=raw-docs}"
    type resolve_docs_source >/dev/null 2>&1 || resolve_docs_source(){ [ -n "$DOCS_SOURCE" ] && printf '%s' "${DOCS_SOURCE/#\~/$HOME}"; }
-   [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /wiki-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
+   [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /cairn-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
    SRC=$(resolve_docs_source)
-   [ -n "$SRC" ] && [ -d "$SRC" ] || { echo "ℹ️ No raw-docs source configured/found — set DOCS_SOURCE (or CLOUD_DOCS_NAME) in .claude/wiki.config.sh, or skip this command if your sources live in the code repo. (/wiki-doctor)"; exit 1; }
-   command -v rsync >/dev/null || { echo "❌ rsync missing — run /wiki-doctor."; exit 1; }
-   MD="$HOME/.local/bin/markitdown"; [ -x "$MD" ] || MD=$(command -v markitdown) || echo "⚠️ markitdown missing (only needed for binary docx/xlsx/pdf/pptx) — run /wiki-doctor."
+   [ -n "$SRC" ] && [ -d "$SRC" ] || { echo "ℹ️ No raw-docs source configured/found — set DOCS_SOURCE (or CLOUD_DOCS_NAME) in .claude/wiki.config.sh, or skip this command if your sources live in the code repo. (/cairn-doctor)"; exit 1; }
+   command -v rsync >/dev/null || { echo "❌ rsync missing — run /cairn-doctor."; exit 1; }
+   MD="$HOME/.local/bin/markitdown"; [ -x "$MD" ] || MD=$(command -v markitdown) || echo "⚠️ markitdown missing (only needed for binary docx/xlsx/pdf/pptx) — run /cairn-doctor."
    mkdir -p "$DOCS_MIRROR"
    echo "source: $SRC   |   mirror: $DOCS_MIRROR   |   wiki: $WIKI_DIR"
    rsync -rcn --delete --exclude='.DS_Store' -i "$SRC/" "$DOCS_MIRROR/" | grep -E '^(>|<|\*deleting)' || true

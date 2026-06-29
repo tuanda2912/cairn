@@ -6,7 +6,7 @@ argument-hint: "(optional) 'force' to regenerate even if wiki pages already exis
 # Rebuild the wiki from scratch (cairn)
 
 Regenerate the **entire** wiki (the Karpathy *bootstrap*) from the raw sources + the code knowledge graph.
-Unlike `/wiki-sync-docs` (incremental doc ingest) and `/wiki-sync-code` (incremental code re-derive), this
+Unlike `/cairn-sync-docs` (incremental doc ingest) and `/cairn-sync-code` (incremental code re-derive), this
 builds **every page from nothing** — use it on a fresh machine where the wiki didn't travel, or to recover a
 lost/corrupted wiki. Locations come from [`.claude/wiki.config.sh`](../wiki.config.sh); page conventions come
 from [`CLAUDE.md`](../../CLAUDE.md).
@@ -27,17 +27,17 @@ type resolve_docs_source >/dev/null 2>&1 || resolve_docs_source(){ [ -n "$DOCS_S
 [ -d .claude ] || { echo "❌ Run from the workspace root."; exit 1; }
 CODE="$(resolve_code_repo main)" ; SRC=$(resolve_docs_source)
 [ -d "$DOCS_MIRROR" ] || [ -n "$SRC" ] || echo "ℹ️ no external docs — the wiki will be built from in-repo sources (README/docs/ADRs) + the code graph."
-[ -f "$CODE/.understand-anything/knowledge-graph.json" ] || echo "⚠️ no code graph at $CODE — run /wiki-sync-code (or /understand $CODE) first, else the code-map pages can't be built."
+[ -f "$CODE/.understand-anything/knowledge-graph.json" ] || echo "⚠️ no code graph at $CODE — run /cairn-sync-code (or /understand $CODE) first, else the code-map pages can't be built."
 [ -d "$WIKI_DIR" ] && [ -n "$(ls -A "$WIKI_DIR" 2>/dev/null)" ] && echo "NOTE: $WIKI_DIR/ already has content — only overwrite if the user passed 'force' or confirms."
 echo "wiki=$WIKI_DIR  docs=$DOCS_MIRROR (source=$SRC)  code:main=$CODE"
 ```
-- If the code graph is missing, tell the user to run **`/wiki-sync-code`** (or `/understand <code>`) first
-  (and **`/wiki-doctor`** if tools/paths are off), then stop.
+- If the code graph is missing, tell the user to run **`/cairn-sync-code`** (or `/understand <code>`) first
+  (and **`/cairn-doctor`** if tools/paths are off), then stop.
 - If the wiki already has pages and `force` was **not** given, **ask** before overwriting.
 
 ## Procedure
 
-1. **Ensure docs are mirrored** (if an external `DOCS_SOURCE` is configured): run the `/wiki-sync-docs`
+1. **Ensure docs are mirrored** (if an external `DOCS_SOURCE` is configured): run the `/cairn-sync-docs`
    mirror step first. Otherwise gather in-repo sources (README, `docs/`, ADRs, design notes).
 
 2. **Read every raw source.** Convert binaries with markitdown (`"$HOME/.local/bin/markitdown" <file> -o
@@ -68,7 +68,7 @@ echo "wiki=$WIKI_DIR  docs=$DOCS_MIRROR (source=$SRC)  code:main=$CODE"
    from-scratch rebuild — synthesis regenerated).
 
 6. **Summarise**: pages built, the commit + graph stats they reflect, gaps surfaced. Remind the user that
-   `/wiki-sync-all` (docs + code + `/lodestar`) keeps it fresh incrementally going forward.
+   `/cairn-sync-all` (docs + code + `/lodestar`) keeps it fresh incrementally going forward.
 
 ## Guardrails
 - Wiki lives **outside** the code repos — write only under `$WIKI_DIR/`.

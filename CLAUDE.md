@@ -6,8 +6,8 @@ kit. It turns a generic assistant into a disciplined second-brain maintainer. **
 > **This file is generic — never edit it per project.** Everything project-specific lives in
 > **[`wiki.context.md`](wiki.context.md)** at the workspace root (name · domain · topology · sources · how to
 > organize the wiki · glossary · special rules). **Read `wiki.context.md` before doing any wiki work** and
-> tailor to it; if it's missing, run **`/wiki-setup`** to scaffold it (it auto-detects topology), or fall
-> back to sensible defaults. List every project's profile across your machine with **`/wiki-projects`**.
+> tailor to it; if it's missing, run **`/cairn-setup`** to scaffold it (it auto-detects topology), or fall
+> back to sensible defaults. List every project's profile across your machine with **`/cairn-projects`**.
 
 The second brain is **three layers**. Each is maintained differently; together they answer both *"what do I
 know?"* and *"if I change feature X, which files move?"*
@@ -92,13 +92,13 @@ wiki/
 
 ## The maintenance loop
 
-The **`/wiki-*` commands** (in `.claude/commands/`) automate this loop — the Ingest / re-derive / lint
-operations above are what they run. Configure paths once with `/wiki-setup`; check deps with `/wiki-doctor`.
+The **`/cairn-*` commands** (in `.claude/commands/`) automate this loop — the Ingest / re-derive / lint
+operations above are what they run. Configure paths once with `/cairn-setup`; check deps with `/cairn-doctor`.
 
 ```
-setup:        install understand-anything · copy .claude/ + this CLAUDE.md · /wiki-setup · /wiki-doctor
-bootstrap:    /understand <code>   →   build the wiki (or /wiki-rebuild)   →   /lodestar
-keep fresh:   /wiki-sync-all  =  /wiki-sync-docs  →  /wiki-sync-code  →  /lodestar   (all incremental)
+setup:        install understand-anything · copy .claude/ + this CLAUDE.md · /cairn-setup · /cairn-doctor
+bootstrap:    /understand <code>   →   build the wiki (or /cairn-rebuild)   →   /lodestar
+keep fresh:   /cairn-sync-all  =  /cairn-sync-docs  →  /cairn-sync-code  →  /lodestar   (all incremental)
               docs changed → re-ingest · code changed → re-derive code pages · then re-map features → files
 ```
 
