@@ -194,5 +194,6 @@ is installed separately as a plugin (its own license applies), and WikiLLM is th
 on.
 
 > [!NOTE]
+> Built with [Claude Code](https://claude.com/claude-code) — see [`CONTRIBUTORS.md`](CONTRIBUTORS.md).
 > Contributions and security reports are welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md) and
 > [`SECURITY.md`](SECURITY.md). Licensed under [MIT](LICENSE).
