@@ -30,13 +30,19 @@ Proposer subagent: **`feature-mapper`** (in `.claude/agents/`) — reads feature
 Report progress at each phase.
 
 ### Phase 0 — Resolve & fail-closed staleness check
-1. Load the config. Resolve the wiki dir, each code repo, and its graph JSON.
-2. **For each code repo, run the staleness gate:**
-   ```bash
-   node .claude/skills/lodestar/query-graph.mjs stale <graph.json> <repoDir>
-   ```
-   - Exit 0 (fresh) → proceed.
-   - **Exit 1 (stale)** → the graph's `capability→files` layer is lying. Report the drift + changed files and
+1. Load the config. The framework lives at the **workspace root**; resolve the wiki dir + the workspace's
+   code repo(s) (`codeRepos[]` in `lodestar.config.json`) and each graph.
+2. **Run the fail-closed staleness gate** over the whole workspace:
+   - **Single-repo workspace:**
+     ```bash
+     node .claude/skills/lodestar/query-graph.mjs stale <graph.json> <repoDir>
+     ```
+   - **Multi-repo (microservices) workspace — check every repo at once:**
+     ```bash
+     node .claude/lib/aggregate-graphs.mjs <lodestar.config.json> <workspaceRoot>
+     ```
+   - Exit 0 (all fresh) → proceed.
+   - **Exit 1 (any repo stale)** → the graph's `capability→files` layer is lying. Report the drift + changed files and
      **offer to refresh** before continuing: `/understand <repoDir>` (incremental). Do **not** silently build
      on a stale graph — a stale map gives false confidence (worse than honest grep). If the user declines the
      refresh, proceed but **stamp the output as stale** and warn in the result.
@@ -62,8 +68,13 @@ Report progress at each phase.
   purpose is stable. The feature-ID and the filename meet only *through* the capability tag.
 
 ### Phase 3 — Service partition + contracts  *(microservices only)*
-- Group the graph's layers into services (`node query-graph.mjs layers <graph.json>` to list them); record in
-  config under `services` (name, language, layers).
+- Build the partition from the workspace's shape:
+  - **Single-repo (polyglot) workspace** (e.g. the Hark example) — group the one graph's **layers** into
+    services: `node .claude/skills/lodestar/query-graph.mjs layers <graph.json>`.
+  - **Multi-repo workspace** — each **repo is a service** (or its layers are sub-services); get the cross-repo
+    partition (per-repo languages, layers, file counts) from
+    `node .claude/lib/aggregate-graphs.mjs <lodestar.config.json> <workspaceRoot>`.
+- Record the partition in config under `services` (name, language, layers/repo).
 - Identify the **cross-service contracts** — the un-greppable/un-compilable edges: wire protocols, API/event
   schemas (OpenAPI/proto/GraphQL), IPC bridges, deploy/compose manifests. **Source these from the contract
   files, not the code graph** (services don't import each other). Flag any seam where the two sides are in

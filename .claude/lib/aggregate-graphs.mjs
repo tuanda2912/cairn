@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+// aggregate-graphs.mjs — cross-repo view for a MULTI-REPO microservice workspace.
+// Reads lodestar.config.json's codeRepos[], loads each repo's understand-anything graph, and emits the
+// per-repo service partition + per-repo staleness. In a multi-repo workspace each REPO is a service (or
+// its layers are sub-services). Single-repo workspaces don't need this — use query-graph.mjs directly.
+//
+// Usage: node aggregate-graphs.mjs <lodestar.config.json> [workspaceRoot]
+//   workspaceRoot defaults to cwd; codeRepos[].path / .graph are resolved relative to it.
+// Exits nonzero if ANY repo's graph is stale (fail-closed), so /lodestar can refuse-or-warn.
+
+import { readFileSync, existsSync } from 'node:fs';
+import { execSync } from 'node:child_process';
+import { dirname, join, resolve, isAbsolute } from 'node:path';
+
+const [, , configPath, workspaceRootArg] = process.argv;
+if (!configPath) { console.error('Usage: aggregate-graphs.mjs <lodestar.config.json> [workspaceRoot]'); process.exit(2); }
+
+const root = workspaceRootArg ? resolve(workspaceRootArg) : process.cwd();
+const config = JSON.parse(readFileSync(configPath, 'utf8'));
+const repos = config.codeRepos || [];
+const FILE_LEVEL = new Set(['file', 'config', 'document', 'service']);
+const abs = (p) => (isAbsolute(p) ? p : resolve(root, p));
+
+const out = [];
+for (const r of repos) {
+  const repoPath = abs(r.path || '.');
+  const graphPath = abs(r.graph || join(r.path || '.', '.understand-anything/knowledge-graph.json'));
+  const entry = { name: r.name || repoPath, path: repoPath, graphExists: existsSync(graphPath) };
+  if (!entry.graphExists) { entry.note = 'no graph — run /understand on this repo'; out.push(entry); continue; }
+
+  const g = JSON.parse(readFileSync(graphPath, 'utf8'));
+  const byId = Object.fromEntries(g.nodes.map((n) => [n.id, n]));
+  entry.languages = [...new Set((g.project?.languages || []).map((l) => String(l).toLowerCase()))];
+  entry.layers = (g.layers || []).map((l) => ({
+    name: l.name,
+    files: (l.nodeIds || []).map((id) => byId[id]).filter((n) => n && FILE_LEVEL.has(n.type)).length,
+  }));
+  entry.fileCount = g.nodes.filter((n) => FILE_LEVEL.has(n.type)).length;
+
+  // staleness (graph commit vs repo HEAD, ignoring the graph's own artifacts)
+  const metaPath = join(dirname(graphPath), 'meta.json');
+  const graphCommit = existsSync(metaPath) ? (JSON.parse(readFileSync(metaPath, 'utf8')).gitCommitHash || '') : '';
+  let head = '', changed = [];
+  try { head = execSync(`git -C "${repoPath}" rev-parse HEAD`, { encoding: 'utf8' }).trim(); } catch { /* not git */ }
+  if (graphCommit && head && graphCommit !== head) {
+    try {
+      changed = execSync(`git -C "${repoPath}" diff ${graphCommit}..HEAD --name-only`, { encoding: 'utf8' })
+        .trim().split('\n').filter(Boolean).filter((p) => !p.startsWith('.understand-anything/'));
+    } catch { /* commit gone */ }
+  }
+  entry.graphCommit = graphCommit.slice(0, 12);
+  entry.head = head.slice(0, 12);
+  entry.fresh = Boolean(graphCommit && head) && changed.length === 0;
+  entry.sourceChanged = changed.length;
+  out.push(entry);
+}
+
+const allLangs = [...new Set(out.flatMap((e) => e.languages || []))];
+const anyStale = out.some((e) => e.graphExists && !e.fresh);
+console.log(JSON.stringify({
+  workspace: {
+    repoCount: repos.length,
+    languages: allLangs,
+    topologyHint: repos.length > 1 ? 'microservices (multi-repo)' : 'single-repo',
+    allFresh: !anyStale,
+  },
+  repos: out,
+}, null, 2));
+process.exit(anyStale ? 1 : 0); // fail-closed: nonzero if any repo's graph has source drift

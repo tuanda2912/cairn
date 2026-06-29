@@ -15,11 +15,14 @@ WIKI_DIR="wiki"
 #         PROJECTS_ROOT="$HOME/Documents/project"
 PROJECTS_ROOT="$HOME"
 
-# 2) Code repositories analyzed by /wiki-sync-code and /wiki-rebuild.
-#    >>> THIS is the main thing to set. One variable per repo; point at where the code actually lives.
-#        CODE_MAIN="../my-app"
-#        CODE_API="$HOME/projects/api"
+# 2) Code repositories in THIS WORKSPACE — analyzed by /wiki-sync-code, /wiki-rebuild, and /lodestar.
+#    The framework lives at the WORKSPACE root (beside/above the code) — NEVER inside a code repo.
+#    A MONOLITH workspace has one repo; a MICROSERVICES workspace has several. One CODE_<ALIAS> var per
+#    repo (path relative to this workspace root, or absolute), and list every alias in CODE_REPOS so the
+#    commands can iterate the whole workspace. resolve_code_repo maps `api` → $CODE_API automatically.
+#        CODE_API="services/api"   CODE_WEB="services/web"   CODE_REPOS="api web"
 CODE_MAIN="../code"
+CODE_REPOS="main"
 
 # 3) Raw source docs the wiki is built FROM (requirements, ADRs, design docs, papers — anything).
 #    a) DOCS_SOURCE — a direct path to the source folder (local dir, network mount, Google
@@ -37,13 +40,17 @@ DOCS_MIRROR="raw-docs"
 # --- helpers (the commands call these; you don't normally edit below) ---
 expand_path() { case "$1" in "~") printf '%s' "$HOME" ;; "~/"*) printf '%s/%s' "$HOME" "${1#\~/}" ;; *) printf '%s' "$1" ;; esac ; }
 
-# Map a /wiki-sync-code target (a CODE_* alias like `main`, OR a literal path) to a path.
-# Add a case here when you start analyzing another repo.
+# Map a CODE_* alias (like `main`, `api`) to its path via variable indirection — `api` → $CODE_API.
+# No per-repo edit needed: define CODE_<ALIAS> + add the alias to CODE_REPOS. An unknown alias is
+# treated as a literal path, so `resolve_code_repo /abs/path` or `../some/repo` also works.
 resolve_code_repo() {
-  case "$1" in
-    main|MAIN|"") expand_path "${CODE_MAIN:-../code}" ;;
-    *)            expand_path "$1" ;;   # unrecognized -> treat the arg as a literal path
+  alias_in="${1:-main}"
+  case "$alias_in" in
+    */*|/*|.*|~*) expand_path "$alias_in"; return ;;  # looks like a path → use literally
   esac
+  var="CODE_$(printf '%s' "$alias_in" | tr '[:lower:]-' '[:upper:]_')"
+  eval "val=\$$var"   # portable indirection (bash/dash/zsh): expands $CODE_<ALIAS>
+  if [ -n "${val:-}" ]; then expand_path "$val"; else expand_path "$alias_in"; fi
 }
 
 # Resolve the RAW docs source folder (the thing the mirror is synced FROM). DOCS_SOURCE wins;

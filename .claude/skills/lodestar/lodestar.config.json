@@ -1,5 +1,5 @@
 {
-  "//": "Config for the /feature-map skill. Copy this whole .claude/ folder into your project, then edit this file. Paths are RELATIVE to the wiki repo root so they travel across machines/clones. A filled-in microservices example is in examples/hark/.",
+  "//": "Config for the /lodestar skill. Lives at the WORKSPACE root (beside/above your code). Paths are RELATIVE to the workspace root so they travel across machines/clones. A filled-in microservices example is in examples/hark/.",
 
   "wikiDir": "wiki",
   "output": "wiki/feature-map.md",
@@ -7,12 +7,13 @@
   "codeRepos": [
     { "name": "<your-repo>", "path": "../<code-repo>", "graph": "../<code-repo>/.understand-anything/knowledge-graph.json" }
   ],
+  "_codeRepos_note": "The workspace's code repo(s). MONOLITH ⇒ one entry. MICROSERVICES (multi-repo) ⇒ one entry PER service repo, and each becomes a service in the partition. /lodestar reads them all via .claude/lib/aggregate-graphs.mjs (per-repo staleness + layers). Run /understand on each repo so every one has a graph.",
 
   "topology": "monolith",
   "_topology_note": "monolith | microservices. monolith ⇒ file→capability tags only (the shared compiler + test suite are the cross-module propagation net). microservices ⇒ also a service partition + cross-service contracts.",
 
   "capabilitySource": "graph-tags",
-  "_capabilitySource_note": "graph-tags = derive a small controlled capability vocab from the graph's per-file tags (seed with: node .claude/skills/feature-map/query-graph.mjs node-tags <graph.json>). subsystem-pages = the wiki is already code-shaped (one page per module), reuse the subsystem slugs as capability tags.",
+  "_capabilitySource_note": "graph-tags = derive a small controlled capability vocab from the graph's per-file tags (seed with: node .claude/skills/lodestar/query-graph.mjs node-tags <graph.json>). subsystem-pages = the wiki is already code-shaped (one page per module), reuse the subsystem slugs as capability tags.",
 
   "featureSources": [
     "../<code-repo>/STATUS.md",

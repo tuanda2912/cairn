@@ -56,11 +56,15 @@ Install the understand-anything plugin (layer 1) — it's not bundled (it's a wh
 (See the [understand-anything repo](https://github.com/Lum1104/Understand-Anything) for Codex/Gemini/other-CLI
 install paths.)
 
-## Per-project quick start
+## Per-workspace quick start
+
+> **It lives at the workspace root, not inside a code repo.** A *workspace* is the dir that holds `.claude/`
+> + `wiki/` + `wiki.context.md`, sitting **beside or above** your code repo(s). Monolith = one code repo;
+> microservices = several (`codeRepos[]`). The brain must never land inside a pushable code repo.
 
 ```bash
-# 1. drop the kit into your project's wiki repo
-cp -R wikillm-framework/.claude  wikillm-framework/CLAUDE.md  /path/to/your/wiki-repo/
+# 1. drop the kit at your WORKSPACE root (beside/above the code repo(s) — never inside one)
+cp -R wikillm-framework/.claude  wikillm-framework/CLAUDE.md  wikillm-framework/wiki.context.md  /path/to/workspace/
 
 # 2. point it at your project + check deps (run from the wiki repo root)
 /wiki-setup        # interactive — writes a gitignored local path override

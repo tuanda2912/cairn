@@ -18,6 +18,13 @@ know?"* and *"if I change feature X, which files move?"*
 | 2 | **WikiLLM wiki** | the LLM-maintained knowledge base (Karpathy pattern) | you, following this manual |
 | 3 | **Feature → file map** | the traceability layer (`feature → capability → files` + gaps) | `/lodestar` (consumes layers 1 + 2) |
 
+**Where it lives — the workspace, never inside a code repo.** The framework + wiki sit at the **workspace
+root** (the dir holding `.claude/` + `wiki/` + `wiki.context.md`), which sits **beside or above** your code.
+A **monolith** workspace points at one code repo; a **microservices** workspace points at several
+(`codeRepos[]` in `lodestar.config.json` / `CODE_*` in `wiki.config.sh`). Topology is a property of the
+workspace's *code*, not of where the brain lives. Keeping the brain outside the code repo is
+non-negotiable — it must never land in a pushable code repo.
+
 ---
 
 ## Layer 1 — the code graph (understand-anything)
