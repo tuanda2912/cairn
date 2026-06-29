@@ -24,7 +24,7 @@ contracts** that the code graph can't see.
 
 ## 1. The three services (process partition)
 
-<!-- @generated:feature-map start — service partition, derived from the graph layers (query-graph.mjs layers). A /feature-map re-run regenerates everything between these markers; edit the config, not this block. -->
+<!-- @generated:lodestar start — service partition, derived from the graph layers (query-graph.mjs layers). A /lodestar re-run regenerates everything between these markers; edit the config, not this block. -->
 
 | Service | Process / language | Graph layers | Owns (subsystems) |
 |---|---|---|---|
@@ -33,7 +33,7 @@ contracts** that the code graph can't see.
 | **`renderer`** | Angular (browser ctx) | *UI Renderer (Angular)* | [[subsystems/ui-shell]] · [[subsystems/engine-service]] · [[subsystems/llm-service]] · [[subsystems/retrieval-service]] |
 | *(cross-cutting)* | — | *Engine Tests* · *Build & Configuration* | test suites · packaging |
 
-<!-- @generated:feature-map end -->
+<!-- @generated:lodestar end -->
 
 **The subsystem is the capability tag** (already curated in Hark's wiki) — no separate vocabulary needed.
 Each subsystem belongs to exactly one service, so `feature → service` falls out of `feature → subsystem`.
@@ -78,7 +78,7 @@ The hand-owned intent layer. Status from [[STATUS|STATUS.md]] (Phase 6 shipped; 
 
 ## 4. Worked query — "I'm changing the `rag.retrieve` wire frame"
 
-<!-- @generated:feature-map start — worked-query resolution skeleton; a re-run regenerates the file list from the graph + contracts. The prose below the fence is hand-owned. -->
+<!-- @generated:lodestar start — worked-query resolution skeleton; a re-run regenerates the file list from the graph + contracts. The prose below the fence is hand-owned. -->
 
 ```
 1. feature lookup    rag.retrieve belongs to → "Vault RAG / Ask Hark" → services {harkd, main, renderer}
@@ -94,7 +94,7 @@ The hand-owned intent layer. Status from [[STATUS|STATUS.md]] (Phase 6 shipped; 
    The renderer mirror has no compiler safety net across the seam → this checklist IS the safety net.
 ```
 
-<!-- @generated:feature-map end -->
+<!-- @generated:lodestar end -->
 
 This is the case a **single-language monolith cannot exhibit**: there, a shared compiler + one test suite
 catch cross-module breaks, so the map only needs "which files." Here, the Swift↔TS seam has **no shared

@@ -3,12 +3,13 @@ description: Build or refresh the feature→file traceability layer of a WikiLLM
 argument-hint: "(optional) a feature to drill into (e.g. 'Vault RAG'), or 'refresh' / 'lint'"
 ---
 
-# /feature-map — feature → file traceability for a WikiLLM second brain
+# /lodestar — feature → file traceability for a WikiLLM second brain
 
 Karpathy's LLM-wiki pattern maintains a knowledge base but **never maps a feature to the code that
-implements it**. This skill adds that missing layer: a thin, durable map from each **user-facing feature**
-→ the **capabilities/services** → the **files**, with **status & gaps**, so you can answer *"if I change
-feature X, which files move?"* — including the cross-service edges grep and the compiler can't see.
+implements it**. This skill is the lodestar that orients you from intent to implementation: a thin, durable
+map from each **user-facing feature** → the **capabilities/services** → the **files**, with **status &
+gaps**, so you can answer *"if I change feature X, which files move?"* — including the cross-service edges
+grep and the compiler can't see.
 
 It is the third layer of the second brain, sitting between the **requirements/feature wiki** and the
 **understand-anything code graph**. It does **not** replace code search — the live source stays the index;
@@ -16,8 +17,8 @@ this persists only what you *can't* grep (intent, gaps, cross-service contracts)
 
 ## Inputs
 
-Read [`feature-map.config.json`](feature-map.config.json) (next to this file). It declares: the wiki dir,
-the code repo(s) + their graph, the topology, the feature sources, and (for micro) the service partition +
+Read [`lodestar.config.json`](lodestar.config.json) (next to this file). It declares: the wiki dir, the code
+repo(s) + their graph, the topology, the feature sources, and (for micro) the service partition +
 cross-service contracts. **Paths are relative to the wiki repo root** so the skill travels across machines.
 To reuse on another project: copy `.claude/`, edit the config.
 
@@ -32,7 +33,7 @@ Report progress at each phase.
 1. Load the config. Resolve the wiki dir, each code repo, and its graph JSON.
 2. **For each code repo, run the staleness gate:**
    ```bash
-   node .claude/skills/feature-map/query-graph.mjs stale <graph.json> <repoDir>
+   node .claude/skills/lodestar/query-graph.mjs stale <graph.json> <repoDir>
    ```
    - Exit 0 (fresh) → proceed.
    - **Exit 1 (stale)** → the graph's `capability→files` layer is lying. Report the drift + changed files and
@@ -45,7 +46,7 @@ Report progress at each phase.
 - Read `topology` from config. If unset, **detect & confirm**: signals for *microservices* = multiple code
   repos, multiple languages, process boundaries, a wire/API/event contract, `docker-compose`/k8s/deploy
   manifests. Otherwise *monolith*. Ask the user to confirm, then persist to config.
-- **monolith** ⇒ Phases 4 (services) and the contracts table are skipped; the compiler + test suite are the
+- **monolith** ⇒ Phase 3 (services) + the contracts table are skipped; the compiler + test suite are the
   cross-module propagation net, so the map only needs feature→capability→files.
 - **microservices** ⇒ do everything (the cross-service contracts are the payload).
 
@@ -82,11 +83,10 @@ Report progress at each phase.
   below so every generated map is structurally identical (the consistency guarantee).
 - **Stamp the graph commit** in the frontmatter `sources` and the intro, so staleness stays computable.
 - **Sentinel markers — regenerate, don't clobber.** Wrap the *graph-derived* blocks (§1 partition /
-  capability→files, §4 worked-query skeleton) in `<!-- @generated:feature-map start -->` …
-  `<!-- @generated:feature-map end -->`. On a **re-run, replace only the content between markers**; never
-  touch the **§3 status column** or **§5 notes** — those are hand-owned. For status changes, the
-  `feature-mapper` agent proposes a *diff* for approval; it does not overwrite. (Borrowed from the
-  `@generated`-block pattern; it's how you refresh the map without losing human edits.)
+  capability→files, §4 worked-query skeleton) in `<!-- @generated:lodestar start -->` …
+  `<!-- @generated:lodestar end -->`. On a **re-run, replace only the content between markers**; never touch
+  the **§3 status column** or **§5 notes** — those are hand-owned. For status changes, the `feature-mapper`
+  agent proposes a *diff* for approval; it does not overwrite.
 - Update the wiki's `index.md` (catalogue the page) and append a `log.md` entry, per the wiki's schema.
 
 ### Phase 6 — Lint
@@ -96,8 +96,8 @@ Report progress at each phase.
   flag "gap may be closed" (the cheap rot-check — catches a built feature whose status never got flipped).
 - **(micro)** every declared cross-service contract appears in the contracts table, and every contract's
   seam files still exist.
-- **Link integrity + index consistency** *(borrowed from second-brain linters):* every `[[wikilink]]` /
-  page link in the map resolves; the map is catalogued in `index.md`.
+- **Link integrity + index consistency:** every `[[wikilink]]` / page link in the map resolves; the map is
+  catalogued in `index.md`.
 - **Staleness:** the stamped graph commit has no *source* drift vs HEAD (`query-graph.mjs stale`), else re-flag.
 - Report findings; do not auto-fix the human-owned status column.
 
@@ -132,6 +132,6 @@ Frontmatter (adapt keys to the wiki's house style), then:
 
 ## Files in this skill
 - `SKILL.md` — this procedure + template.
-- `feature-map.config.json` — the portable per-project manifest (edit to reuse elsewhere).
+- `lodestar.config.json` — the portable per-project manifest (edit to reuse elsewhere).
 - `query-graph.mjs` — deterministic graph helpers (staleness, layer/tag slices).
 - `../../agents/feature-mapper.md` — the proposer subagent.

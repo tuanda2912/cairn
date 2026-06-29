@@ -1,23 +1,28 @@
-# wikillm-framework — feature → file traceability for an LLM wiki
+# wikillm-framework — a self-maintaining second brain that maps features to files
 
-A portable, drop-in framework that adds the layer [Karpathy's LLM-wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-is missing: **mapping each user-facing feature to the capabilities, services, and files that implement it**
-— with status & gaps — so you can answer *"if I change feature X, which files move?"*
+A portable kit for an LLM-maintained **second brain** that does what [Karpathy's LLM-wiki
+pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) alone doesn't: it links the
+**knowledge wiki** to the **code**, so you can answer *"if I change feature X, which files move?"* — including
+the cross-service edges grep and the compiler can't see.
 
-It sits between a **feature/requirements wiki** (the WikiLLM half) and an **[understand-anything](https://github.com/Lum1104/Understand-Anything)
-code graph** (the code half), and persists only what you *can't* grep: intent, gaps, and cross-service
-contracts. The live source stays your code-search index — this is the traceability seam on top.
+It's three layers. Clone this, install one plugin, edit one config, and run.
 
-> **Clone-and-reuse:** copy the `.claude/` folder into any project's wiki repo, edit one config file, run
-> `/feature-map`. That's it.
+| # | Layer | Driven by | Where |
+|---|---|---|---|
+| 1 | **Code graph** | [understand-anything](https://github.com/Lum1104/Understand-Anything) (`/understand`) | external plugin (install once — below) |
+| 2 | **WikiLLM wiki** (the second brain) | the Karpathy three-layer pattern | **`CLAUDE.md`** (the operating manual, in this repo) |
+| 3 | **Feature → file map** | **`/lodestar`** skill + `feature-mapper` agent | `.claude/` (in this repo) |
+
+> Read **[`CLAUDE.md`](CLAUDE.md)** first — it's the schema that ties the three layers together and tells the
+> LLM how to build and maintain the wiki. This README is the quick start.
 
 ## Why it exists
 
-- A code graph (understand-anything) tells you *what the code is*, but not *which requirement it serves* or
-  *what's missing*. Grep can find code that exists; it can never surface a feature with **no** code (a gap).
+- A code graph tells you *what the code is*, but not *which feature it serves* or *what's missing*. Grep
+  finds code that exists; it can never surface a feature with **no** code (a gap).
 - In **microservices**, cross-service calls go over a wire/API/event boundary — invisible to grep, and (when
-  polyglot) invisible to the compiler too. The change-set for a feature spanning services is genuinely
-  un-recoverable from any single source. This framework precomputes exactly that.
+  polyglot) invisible to the compiler too. The change-set for a feature spanning services is un-recoverable
+  from any single source. `/lodestar` precomputes exactly that.
 
 ## The model
 
@@ -32,55 +37,64 @@ feature  →  capability (stable tag)  →  files
 - **Reuse the code graph.** understand-anything already tags every file + assigns a layer — that *is* the
   `capability → files` layer, refreshed for free on `/understand`. The only hand-owned artifact is a small
   `feature → capability + status` register.
-- **Topology decides the shape:**
-  - **Monolith** (one repo, one build) ⇒ file→capability tags only; the shared compiler + tests are the
-    cross-module propagation net.
-  - **Microservices** (multi-repo / polyglot / process boundaries) ⇒ also a **service partition** + the
-    **cross-service contracts** (wire protocols, API/event schemas, IPC, deploy manifests) — sourced from the
-    contract files, not the code graph.
+- **Topology decides the shape:** **monolith** (one repo/build) ⇒ file→capability tags only (the shared
+  compiler + tests are the propagation net). **Microservices** (multi-repo / polyglot / process boundaries)
+  ⇒ also a **service partition** + the **cross-service contracts** (wire/API/event/IPC/deploy), sourced from
+  the contract files, not the code graph.
 
-## Prerequisites
+## Setup (once per machine)
 
-1. A project with a **feature/requirements wiki** (or any markdown KB) you maintain.
-2. An **understand-anything knowledge graph** of the code: install the plugin and run `/understand <repo>`.
-   The graph lands at `<repo>/.understand-anything/knowledge-graph.json` — this framework consumes it.
-
-## Quick start
+Install the understand-anything plugin (layer 1) — it's not bundled (it's a whole plugin):
 
 ```bash
-# 1. copy the framework into your wiki repo
-cp -R wikillm-framework/.claude  /path/to/your/wiki-repo/
+# in Claude Code:
+/plugin marketplace add Lum1104/Understand-Anything
+/plugin install understand-anything
+# needs Node ≥ 22 and pnpm ≥ 10 (the plugin builds a local core package on first run)
+```
 
-# 2. edit the manifest for your project
-$EDITOR /path/to/your/wiki-repo/.claude/skills/feature-map/feature-map.config.json
+(See the [understand-anything repo](https://github.com/Lum1104/Understand-Anything) for Codex/Gemini/other-CLI
+install paths.)
+
+## Per-project quick start
+
+```bash
+# 1. drop the framework into your project's wiki repo
+cp -R wikillm-framework/.claude  wikillm-framework/CLAUDE.md  /path/to/your/wiki-repo/
+
+# 2. point the manifest at your project
+$EDITOR /path/to/your/wiki-repo/.claude/skills/lodestar/lodestar.config.json
 #   set: wikiDir, codeRepos[].path + graph, topology, featureSources
 #   (microservices) also: services[] (group graph layers) + contracts[]
 
-# 3. make sure the code graph is fresh
-/understand /path/to/code-repo            # (understand-anything)
+# 3. build the code graph (layer 1)
+/understand /path/to/code-repo
 
-# 4. build the map
-/feature-map
+# 4. build / maintain the wiki (layer 2) — follow CLAUDE.md
+
+# 5. map features → files (layer 3)
+/lodestar
 ```
 
-`/feature-map` runs a fail-closed staleness check, derives the capability layer from the graph, has the
+`/lodestar` runs a fail-closed staleness check, derives the capability layer from the graph, has the
 `feature-mapper` agent propose the feature register (you approve the `status`/`gap` column), and writes
-`wiki/feature-map.md` from a canonical template — with graph-derived blocks wrapped in `<!-- @generated -->`
-markers so future re-runs refresh without clobbering your edits.
+`wiki/feature-map.md` from a canonical template — with graph-derived blocks wrapped in
+`<!-- @generated:lodestar -->` markers so future re-runs refresh without clobbering your edits.
 
 ## What's in here
 
 ```
+CLAUDE.md                    the WikiLLM operating manual (layer 2) + how the 3 layers chain
 .claude/
-  skills/feature-map/
-    SKILL.md                 the operating procedure + canonical output template
-    feature-map.config.json  the portable per-project manifest (edit this)
+  skills/lodestar/
+    SKILL.md                 the /lodestar procedure + canonical output template
+    lodestar.config.json     the portable per-project manifest (edit this)
     query-graph.mjs          deterministic, zero-LLM helper: staleness gate + graph slices
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
 examples/
   hark/                      a real worked example — a polyglot multi-process (microservices) app
     feature-map.md           the generated map (3 services, cross-process wire/IPC contracts)
-    feature-map.config.json  its filled-in manifest
+    lodestar.config.json     its filled-in manifest
 ```
 
 ## Principles (the rules that keep it from rotting)
