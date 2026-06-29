@@ -51,12 +51,20 @@ feature  →  capability (stable tag)  →  files
   ⇒ also a **service partition** + the **cross-service contracts** (wire/API/event/IPC/deploy), sourced from
   the contract files, not the code graph.
 
+## Requirements
+
+Cairn is a **Claude Code** kit — its commands, skills, and agent run inside Claude Code (the `.claude/`
+slash-command / skill / agent format), not as a standalone CLI. You also need the **understand-anything**
+plugin for layer 1 (Node ≥ 22, pnpm ≥ 10).
+
 ## Setup (once per machine)
 
-Install the understand-anything plugin (layer 1) — it's not bundled (it's a whole plugin):
+Get Cairn, then install the understand-anything plugin (layer 1) — it's not bundled (it's a whole plugin):
 
 ```bash
-# in Claude Code:
+git clone https://github.com/tuanda2912/cairn.git
+
+# then, in Claude Code:
 /plugin marketplace add Lum1104/Understand-Anything
 /plugin install understand-anything
 # needs Node ≥ 22 and pnpm ≥ 10 (the plugin builds a local core package on its first run)
@@ -126,10 +134,6 @@ wiki/                        the knowledge base (ships as an empty starter; /wik
   lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /wiki-projects)
   lib/aggregate-graphs.mjs   multi-repo: per-repo staleness + service partition (powers /lodestar on N repos)
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
-examples/
-  hark/                      a real worked example — a polyglot multi-process (microservices) app
-    feature-map.md           the generated map (3 services, cross-process wire/IPC contracts)
-    lodestar.config.json     its filled-in manifest
 ```
 
 ### Commands (layer 2)
@@ -166,3 +170,8 @@ Built on [Karpathy's WikiLLM pattern](https://gist.github.com/karpathy/442a6bf55
 `@generated` sentinel markers, the link-integrity / index-consistency lint) borrow from the broader
 WikiLLM-second-brain ecosystem; the **feature→file + code-graph + computed-staleness seam** is the part those
 tools don't cover — and the part Cairn exists to be.
+
+## License
+
+[MIT](LICENSE) © tuanda2912. Cairn bundles no third-party code — understand-anything is installed separately
+as a plugin (its own license applies), and WikiLLM is the upstream pattern Cairn builds on.

@@ -69,7 +69,7 @@ Report progress at each phase.
 
 ### Phase 3 — Service partition + contracts  *(microservices only)*
 - Build the partition from the workspace's shape:
-  - **Single-repo (polyglot) workspace** (e.g. the Hark example) — group the one graph's **layers** into
+  - **Single-repo (polyglot) workspace** (a polyglot app in one repo) — group the one graph's **layers** into
     services: `node .claude/skills/lodestar/query-graph.mjs layers <graph.json>`.
   - **Multi-repo workspace** — each **repo is a service** (or its layers are sub-services); get the cross-repo
     partition (per-repo languages, layers, file counts) from
