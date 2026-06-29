@@ -34,7 +34,9 @@ DOCS_SOURCE=""
 #       (common when your sources are local or live in the code repo).
 CLOUD_SEARCH_ROOT="$HOME/Library/CloudStorage"
 CLOUD_DOCS_NAME=""
-#    c) Local mirror the docs are synced INTO (relative to the workspace root, or absolute):
+#    c) Local mirror the docs are synced INTO (relative to the workspace root, or absolute).
+#       The default "raw-docs/" is gitignored — it's a derived cache of upstream sources (possibly
+#       confidential). If you rename it, add the new path to .gitignore too.
 DOCS_MIRROR="raw-docs"
 
 # --- helpers (the commands call these; you don't normally edit below) ---

@@ -37,10 +37,10 @@ command -v rsync >/dev/null && ok rsync "$(rsync --version 2>/dev/null|head -1)"
 
 echo "Code sync (/wiki-sync-code, /lodestar):"
 command -v node >/dev/null && { v=$(node -v|tr -d v); ok node "v$v"; [ "${v%%.*}" -ge 22 ] || warn node "need ≥22 (have v$v)"; } || no node "brew install node   (≥22)"
-command -v pnpm >/dev/null && { p=$(pnpm -v); ok pnpm "$p"; [ "${p%%.*}" -ge 10 ] || warn pnpm "need ≥10 (have $p)"; } || no pnpm "corepack enable pnpm   (or npm i -g pnpm)"
+command -v pnpm >/dev/null && { p=$(pnpm -v); ok pnpm "$p"; [ "${p%%.*}" -ge 10 ] || warn pnpm "need ≥10 (have $p)"; } || warn pnpm "only for the understand-anything plugin's FIRST build — skip if the plugin already built. corepack enable pnpm (or npm i -g pnpm)"
 ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* >/dev/null 2>&1 \
   && ok ua-plugin "$(ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* | tail -1 | xargs basename)" \
-  || no ua-plugin "in Claude Code: /plugin marketplace add Lum1104/Understand-Anything → /plugin install understand-anything"
+  || no ua-plugin "not at the Claude Code plugin cache (other CLIs install elsewhere — see the UA repo). In Claude Code: /plugin marketplace add Lum1104/Understand-Anything → /plugin install understand-anything"
 
 echo "Docs conversion (optional — only for binary docx/xlsx/pdf/pptx sources):"
 command -v uv >/dev/null && ok uv "$(uv --version 2>/dev/null)" || warn uv "brew install uv   (only if you have binary source docs)"

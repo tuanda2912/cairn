@@ -24,7 +24,13 @@ try {
   console.error(`broken/unreadable config at ${configPath}: ${e.message}`);
   process.exit(2);
 }
-const repos = config.codeRepos || [];
+if (config.codeRepos !== undefined && !Array.isArray(config.codeRepos)) {
+  // codeRepos present but not an array is broken INPUT (exit 2) — without this it would slip past the
+  // empty-guard below and crash in the for…of with an uncaught exit 1 (the stale-collision we just fixed).
+  console.error(`broken config: codeRepos must be an array, got ${typeof config.codeRepos}`);
+  process.exit(2);
+}
+const repos = Array.isArray(config.codeRepos) ? config.codeRepos : [];
 if (repos.length === 0) {
   // Zero graphs to verify is NOT "all fresh" — fail-closed so /lodestar can't build on nothing.
   console.error('no codeRepos[] in config — nothing to verify (fail-closed)');

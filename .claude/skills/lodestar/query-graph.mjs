@@ -134,16 +134,31 @@ if (cmd === 'topology') {
   signals.push(`${(g.layers || []).length} graph layers`);
 
   const has = (p) => { try { statSync(join(repo, p)); return true; } catch { return false; } };
+  const MANIFESTS = ['package.json', 'go.mod', 'Cargo.toml', 'pom.xml', 'pyproject.toml'];
   if (repo) {
-    if (['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'].some(has)) { structural += 3; signals.push('docker-compose present → service orchestration (STRONG microservices signal)'); }
+    // docker-compose is a MEDIUM hint, not decisive — monoliths routinely use it to orchestrate backing
+    // services (db/redis) for local dev. It corroborates; it no longer crosses the threshold alone
+    // (mirrors the prior pass's "polyglot is a weak hint" fix — same false-positive class).
+    if (['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'].some(has)) { structural += 2; signals.push('docker-compose present → service orchestration (MEDIUM hint — also common in monoliths for backing services)'); }
+    // Count distinct build roots: flat siblings (repo/<unit>/<manifest>) AND nested monorepo units
+    // (repo/{services,apps,packages}/<unit>/<manifest>). The 1-level scan alone missed nested monorepos —
+    // the layout that most signals a boundary — so its strong evidence was invisible.
     let pkgUnits = 0;
     try {
       for (const e of readdirSync(repo, { withFileTypes: true })) {
         if (!e.isDirectory() || e.name.startsWith('.') || e.name === 'node_modules') continue;
-        if (['package.json', 'go.mod', 'Cargo.toml', 'pom.xml', 'pyproject.toml'].some((mf) => has(join(e.name, mf)))) pkgUnits++;
+        if (MANIFESTS.some((mf) => has(join(e.name, mf)))) pkgUnits++;
       }
     } catch { /* unreadable */ }
-    if (pkgUnits >= 2) { structural += 3; signals.push(`${pkgUnits} sub-directory build manifests → multiple build roots (STRONG microservices signal)`); }
+    for (const container of ['services', 'apps', 'packages']) {
+      try {
+        for (const e of readdirSync(join(repo, container), { withFileTypes: true })) {
+          if (!e.isDirectory() || e.name.startsWith('.')) continue;
+          if (MANIFESTS.some((mf) => has(join(container, e.name, mf)))) pkgUnits++;
+        }
+      } catch { /* container absent/unreadable */ }
+    }
+    if (pkgUnits >= 2) { structural += 3; signals.push(`${pkgUnits} build roots (sub-dir manifests, incl. nested) → multiple build units (monorepo/polyrepo — confirm whether they deploy as separate services)`); }
     if (has('Procfile')) { structural += 1; signals.push('Procfile present (multiple processes)'); }
     for (const d of ['services', 'apps', 'packages']) if (has(d)) { structural += 1; signals.push(`monorepo dir "${d}/" present`); }
   } else {
@@ -153,7 +168,7 @@ if (cmd === 'topology') {
   // Microservices requires a STRUCTURAL boundary signal; polyglot alone does NOT qualify.
   const proposal = structural >= 3 ? 'microservices' : 'monolith';
   if (proposal === 'monolith' && langs.length >= 2) {
-    signals.push('verdict: polyglot but no service-boundary signal (no docker-compose / multiple build roots) → treated as MONOLITH');
+    signals.push('verdict: polyglot but the structural signal is below threshold (no multiple build roots; compose alone is only a medium hint) → treated as MONOLITH — confirm');
   }
   console.log(JSON.stringify({ proposal, structuralScore: structural, languages: langs, signals }, null, 2));
   console.error('\n# PROPOSAL ONLY — topology is a deployment fact code alone cannot prove. A MULTI-REPO workspace (several CODE_* repos) is microservices regardless of this single-repo guess. Confirm with the user.');

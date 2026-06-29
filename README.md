@@ -98,7 +98,7 @@ cp -R wikillm-framework/.claude  wikillm-framework/wiki  wikillm-framework/CLAUD
 `/lodestar` runs a fail-closed staleness check, derives the capability layer from the graph, has the
 `feature-mapper` agent propose the feature register (you approve the `status`/`gap` column), and writes
 `wiki/feature-map.md` from a canonical template — with graph-derived blocks wrapped in
-`<!-- @generated:lodestar -->` markers so future re-runs refresh without clobbering your edits.
+`<!-- @generated:lodestar start … end -->` markers so future re-runs refresh without clobbering your edits.
 
 ## What's in here
 

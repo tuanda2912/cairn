@@ -93,11 +93,16 @@ Report progress at each phase.
   frontmatter + link style — e.g. `[[wikilinks]]` if the wiki uses them). Use the **canonical template**
   below so every generated map is structurally identical (the consistency guarantee).
 - **Stamp the graph commit** in the frontmatter `sources` and the intro, so staleness stays computable.
-- **Sentinel markers — regenerate, don't clobber.** Wrap the *graph-derived* blocks (§1 partition /
-  capability→files, §4 worked-query skeleton) in `<!-- @generated:lodestar start -->` …
-  `<!-- @generated:lodestar end -->`. On a **re-run, replace only the content between markers**; never touch
-  the **§3 status column** or **§5 notes** — those are hand-owned. For status changes, the `feature-mapper`
-  agent proposes a *diff* for approval; it does not overwrite.
+- **Sentinel markers — regenerate, don't clobber.** Wrap each *graph-derived* block (§1 partition /
+  capability→files, §4 worked-query skeleton) in its own fence:
+  `<!-- @generated:lodestar start — <what this block is> -->` … `<!-- @generated:lodestar end -->`
+  (a descriptive suffix after `start` is allowed — match on the marker prefix, not the whole literal). On a
+  **re-run, treat each `start … end` pair as an INDEPENDENT region** and replace only its inner content:
+  match **non-greedily** (`@generated:lodestar start[\s\S]*?-->` up to the **nearest following**
+  `@generated:lodestar end[\s\S]*?-->`) and **never span across two pairs** — the hand-owned §2/§3 sit
+  *between* the §1 and §4 fences and must survive. Never touch the **§3 status column** or **§5 notes** —
+  those are hand-owned. For status changes, the `feature-mapper` agent proposes a *diff* for approval; it
+  does not overwrite.
 - Update the wiki's `index.md` (catalogue the page) and append a `log.md` entry, per the wiki's schema.
 
 ### Phase 6 — Lint

@@ -20,7 +20,10 @@ Target repo: **$ARGUMENTS** (default `main` when empty). The alias (or a literal
    : "${WIKI_DIR:=wiki}"
    type resolve_code_repo >/dev/null 2>&1 || resolve_code_repo(){ echo "${1:-../code}"; }
    [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /wiki-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
-   TARGET_NAME="$ARGUMENTS"; TARGET_NAME="${TARGET_NAME//[[:space:]]/}"; [ -z "$TARGET_NAME" ] && TARGET_NAME="main"
+   TARGET_NAME="$ARGUMENTS"
+   TARGET_NAME="${TARGET_NAME#"${TARGET_NAME%%[![:space:]]*}"}"   # ltrim
+   TARGET_NAME="${TARGET_NAME%"${TARGET_NAME##*[![:space:]]}"}"   # rtrim (preserve internal spaces — paths may contain them)
+   [ -z "$TARGET_NAME" ] && TARGET_NAME="main"
    TARGET="$(resolve_code_repo "$TARGET_NAME")"
    [ -d "$TARGET" ] || { echo "❌ Code repo '$TARGET_NAME' → '$TARGET' not found. Set CODE_* in .claude/wiki.config.sh (or pass a valid path)."; exit 1; }
    command -v node >/dev/null || { echo "❌ node missing (≥22) — run /wiki-doctor."; exit 1; }

@@ -18,7 +18,7 @@ Why it's a good example:
 
 Files:
 
-- `feature-map.md` — the generated map (note the `<!-- @generated:lodestar -->` markers around graph-derived blocks).
+- `feature-map.md` — the generated map (note the `<!-- @generated:lodestar start … end -->` markers around graph-derived blocks).
 - `lodestar.config.json` — the filled-in manifest that produced it.
 
 For the **monolith** path, you'd instead get a flat file→capability table and skip the services/contracts
