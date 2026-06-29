@@ -78,12 +78,14 @@ feature-map.md        the layer-3 artifact (written by /lodestar)
 
 ## The maintenance loop
 
+The **`/wiki-*` commands** (in `.claude/commands/`) automate this loop — the Ingest / re-derive / lint
+operations above are what they run. Configure paths once with `/wiki-setup`; check deps with `/wiki-doctor`.
+
 ```
-setup:        install understand-anything · copy .claude/ + this CLAUDE.md · edit lodestar.config.json
-build:        /understand <code>   →   build/maintain wiki (layer 2)   →   /lodestar (layer 3)
-on change:    code moved?  → re-run /understand (incremental)
-              spec moved?  → ingest into the wiki
-              then          → re-run /lodestar, then lint
+setup:        install understand-anything · copy .claude/ + this CLAUDE.md · /wiki-setup · /wiki-doctor
+bootstrap:    /understand <code>   →   build the wiki (or /wiki-rebuild)   →   /lodestar
+keep fresh:   /wiki-sync-all  =  /wiki-sync-docs  →  /wiki-sync-code  →  /lodestar   (all incremental)
+              docs changed → re-ingest · code changed → re-derive code pages · then re-map features → files
 ```
 
 ## First principles (don't relitigate)

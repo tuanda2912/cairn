@@ -2,3 +2,6 @@
 node_modules/
 *.log
 .understand-anything/
+
+# machine-specific wiki paths (written by /wiki-setup)
+.claude/wiki.config.local.sh

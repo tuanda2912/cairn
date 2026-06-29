@@ -59,21 +59,24 @@ install paths.)
 ## Per-project quick start
 
 ```bash
-# 1. drop the framework into your project's wiki repo
+# 1. drop the kit into your project's wiki repo
 cp -R wikillm-framework/.claude  wikillm-framework/CLAUDE.md  /path/to/your/wiki-repo/
 
-# 2. point the manifest at your project
-$EDITOR /path/to/your/wiki-repo/.claude/skills/lodestar/lodestar.config.json
-#   set: wikiDir, codeRepos[].path + graph, topology, featureSources
-#   (microservices) also: services[] (group graph layers) + contracts[]
+# 2. point it at your project + check deps (run from the wiki repo root)
+/wiki-setup        # interactive — writes a gitignored local path override
+/wiki-doctor       # verifies node/pnpm + the understand-anything plugin + that paths resolve
+#   also edit .claude/skills/lodestar/lodestar.config.json: topology, services[], contracts[]
 
 # 3. build the code graph (layer 1)
-/understand /path/to/code-repo
+/understand /path/to/code-repo            # or: /wiki-sync-code
 
-# 4. build / maintain the wiki (layer 2) — follow CLAUDE.md
+# 4. build / maintain the wiki (layer 2) — follow CLAUDE.md, or /wiki-rebuild to bootstrap
 
 # 5. map features → files (layer 3)
 /lodestar
+
+# keep it fresh later — one shot, incremental:
+/wiki-sync-all     # docs → code → /lodestar
 ```
 
 `/lodestar` runs a fail-closed staleness check, derives the capability layer from the graph, has the
@@ -86,6 +89,9 @@ $EDITOR /path/to/your/wiki-repo/.claude/skills/lodestar/lodestar.config.json
 ```
 CLAUDE.md                    the WikiLLM operating manual (layer 2) + how the 3 layers chain
 .claude/
+  wiki.config.sh             portable path config — code repo(s), docs source, wiki dir (or run /wiki-setup)
+  commands/                  wiki-maintenance commands (layer-2 automation):
+    wiki-setup · wiki-doctor · wiki-sync-docs · wiki-sync-code · wiki-sync-all · wiki-rebuild
   skills/lodestar/
     SKILL.md                 the /lodestar procedure + canonical output template
     lodestar.config.json     the portable per-project manifest (edit this)
@@ -96,6 +102,17 @@ examples/
     feature-map.md           the generated map (3 services, cross-process wire/IPC contracts)
     lodestar.config.json     its filled-in manifest
 ```
+
+### Wiki-maintenance commands (layer 2)
+
+| Command | Does |
+|---|---|
+| `/wiki-setup` | interactively point the kit at your code/docs/wiki paths (writes a gitignored local override) |
+| `/wiki-doctor` | check deps (node/pnpm, the understand-anything plugin) + that paths resolve; offer to install |
+| `/wiki-sync-docs` | pull raw source docs, checksum-diff, re-ingest the changes into the wiki |
+| `/wiki-sync-code` | incremental `/understand` update → re-derive the wiki's code-map pages |
+| `/wiki-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
+| `/wiki-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
 
 ## Principles (the rules that keep it from rotting)
 
