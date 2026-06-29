@@ -25,7 +25,7 @@ no(){ printf '  ❌ %-14s MISSING — %s\n' "$1" "$2"; }
 warn(){ printf '  ⚠️  %-14s %s\n' "$1" "$2"; }
 
 echo "Configured locations (.claude/wiki.config.sh):"
-[ -d "$WIKI_DIR" ] && ok "wiki" "$WIKI_DIR" || no "wiki" "WIKI_DIR='$WIKI_DIR' not found — run from the wiki repo root or fix the config"
+[ -d "$WIKI_DIR" ] && ok "wiki" "$WIKI_DIR" || no "wiki" "WIKI_DIR='$WIKI_DIR' not found — run from the workspace root or fix the config"
 p="$(resolve_code_repo main)"; [ -d "$p" ] && ok "code:main" "$p" || warn "code:main" "'$p' not found — set CODE_MAIN in .claude/wiki.config.sh"
 SRC=$(resolve_docs_source)
 if [ -n "$SRC" ] && [ -d "$SRC" ]; then ok "docs-source" "$SRC${DOCS_SOURCE:+  (DOCS_SOURCE)}"
@@ -52,7 +52,7 @@ MD="$HOME/.local/bin/markitdown"; { [ -x "$MD" ] || MD=$(command -v markitdown);
 Summarise: which commands are **ready** vs **blocked**, and by what.
 
 - **Configured-path misses** — if `wiki`/`docs-source`/`code:main` didn't resolve, the path points at the
-  wrong place (or you're not at the wiki repo root). Easiest fix: **`/wiki-setup`** (writes the gitignored
+  wrong place (or you're not at the workspace root). Easiest fix: **`/wiki-setup`** (writes the gitignored
   local override); or set the variable by hand (`CODE_MAIN`, `DOCS_SOURCE`/`CLOUD_DOCS_NAME`).
 - **Shell-installable** (`node`, `pnpm`, and optionally `uv`, `markitdown`) — if missing and the user said
   `install` (or agrees), run the matching command for **each missing one**, then re-run Step 1. ⚠️

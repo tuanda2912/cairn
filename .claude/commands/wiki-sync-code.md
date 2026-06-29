@@ -12,23 +12,23 @@ pages** from the updated graph.
 Target repo: **$ARGUMENTS** (default `main` when empty). The alias (or a literal path) is resolved via
 [`.claude/wiki.config.sh`](../wiki.config.sh), so **the code can live anywhere** — set `CODE_*` there.
 
-## Procedure (run from the wiki repo root)
+## Procedure (run from the workspace root)
 
 1. **Resolve paths + preflight.**
    ```bash
    [ -f .claude/wiki.config.sh ] && . .claude/wiki.config.sh
    : "${WIKI_DIR:=wiki}"
    type resolve_code_repo >/dev/null 2>&1 || resolve_code_repo(){ echo "${1:-../code}"; }
-   [ -d "$WIKI_DIR" ] || { echo "❌ Run from the wiki repo root (where $WIKI_DIR/ lives)."; exit 1; }
+   [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /wiki-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
    TARGET_NAME="$ARGUMENTS"; TARGET_NAME="${TARGET_NAME//[[:space:]]/}"; [ -z "$TARGET_NAME" ] && TARGET_NAME="main"
    TARGET="$(resolve_code_repo "$TARGET_NAME")"
    [ -d "$TARGET" ] || { echo "❌ Code repo '$TARGET_NAME' → '$TARGET' not found. Set CODE_* in .claude/wiki.config.sh (or pass a valid path)."; exit 1; }
-   command -v node >/dev/null && command -v pnpm >/dev/null || { echo "❌ node/pnpm missing — run /wiki-doctor."; exit 1; }
+   command -v node >/dev/null || { echo "❌ node missing (≥22) — run /wiki-doctor."; exit 1; }
    ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* >/dev/null 2>&1 || echo "⚠️ understand-anything plugin not detected — run /wiki-doctor."
    echo "Target: $TARGET_NAME → $TARGET"
    git -C "$TARGET" rev-parse HEAD 2>/dev/null && git -C "$TARGET" status --porcelain | head -5
    ```
-   - If node/pnpm or the plugin are missing, relay the `/wiki-doctor` pointer and stop. Note whether
+   - If node or the plugin are missing, relay the `/wiki-doctor` pointer and stop. Note whether
      `$TARGET` has **uncommitted** changes (see the 1b caveat).
 
 1b. **Run the incremental update.** Invoke the `/understand` skill on the resolved path (do **not** pass

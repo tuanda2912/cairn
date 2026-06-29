@@ -59,22 +59,33 @@ install paths.)
 ## Per-workspace quick start
 
 > **It lives at the workspace root, not inside a code repo.** A *workspace* is the dir that holds `.claude/`
-> + `wiki/` + `wiki.context.md`, sitting **beside or above** your code repo(s). Monolith = one code repo;
-> microservices = several (`codeRepos[]`). The brain must never land inside a pushable code repo.
+> + `wiki/` + `wiki.context.md`, sitting **beside or above** your code repo(s). The brain must never land
+> inside a pushable code repo.
+
+Concrete layout (the default `CODE_MAIN="../code"` assumes code is a **sibling** of the workspace):
+
+```
+parent/
+├─ workspace/   ← run commands here:  .claude/ · wiki/ · CLAUDE.md · wiki.context.md
+└─ code/        ← your code repo  →  CODE_MAIN="../code"   (micro: code-api/, code-web/, … + CODE_REPOS="api web")
+```
+*(Prefer code inside the workspace? Put it at `workspace/code/` and set `CODE_MAIN="code"`.)*
 
 ```bash
 # 1. drop the kit at your WORKSPACE root (beside/above the code repo(s) — never inside one)
-cp -R wikillm-framework/.claude  wikillm-framework/CLAUDE.md  wikillm-framework/wiki.context.md  /path/to/workspace/
+#    includes a starter wiki/ so the commands have somewhere to write
+cp -R wikillm-framework/.claude  wikillm-framework/wiki  wikillm-framework/CLAUDE.md  wikillm-framework/wiki.context.md  /path/to/workspace/
 
-# 2. point it at your project + check deps (run from the wiki repo root)
-/wiki-setup        # interactive — writes a gitignored local path override
-/wiki-doctor       # verifies node/pnpm + the understand-anything plugin + that paths resolve
+# 2. point it at your project + check deps (run from the WORKSPACE root)
+/wiki-setup        # interactive — writes a gitignored local path override + scaffolds wiki.context.md
+/wiki-doctor       # verifies node + the understand-anything plugin + that paths resolve
 #   also edit .claude/skills/lodestar/lodestar.config.json: topology, services[], contracts[]
 
 # 3. build the code graph (layer 1)
 /understand /path/to/code-repo            # or: /wiki-sync-code
 
-# 4. build / maintain the wiki (layer 2) — follow CLAUDE.md, or /wiki-rebuild to bootstrap
+# 4. BOOTSTRAP the wiki (layer 2) — authors every page from your sources + the graph
+/wiki-rebuild                             # the starter wiki/ is empty until you do this
 
 # 5. map features → files (layer 3)
 /lodestar
@@ -93,6 +104,7 @@ cp -R wikillm-framework/.claude  wikillm-framework/CLAUDE.md  wikillm-framework/
 ```
 CLAUDE.md                    the WikiLLM operating manual — GENERIC, never edit per project
 wiki.context.md              THE per-project profile you fill (name · domain · topology · sources · glossary · rules)
+wiki/                        the knowledge base (ships as an empty starter; /wiki-rebuild populates it)
 .claude/
   wiki.config.sh             portable path config — code repo(s), docs source, wiki dir, projects root
   commands/                  wiki-maintenance commands (layer-2 automation):
@@ -102,6 +114,7 @@ wiki.context.md              THE per-project profile you fill (name · domain ·
     lodestar.config.json     the per-project routing manifest (topology · services · contracts)
     query-graph.mjs          deterministic helper: staleness gate · graph slices · topology detection
   lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /wiki-projects)
+  lib/aggregate-graphs.mjs   multi-repo: per-repo staleness + service partition (powers /lodestar on N repos)
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
 examples/
   hark/                      a real worked example — a polyglot multi-process (microservices) app

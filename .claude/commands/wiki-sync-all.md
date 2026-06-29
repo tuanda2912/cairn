@@ -11,14 +11,14 @@ invoking each by hand: source docs first, then code understanding, then the feat
 Optional `$ARGUMENTS` is passed through to the code sync as its target (default `main`). Locations come from
 [`.claude/wiki.config.sh`](../wiki.config.sh) (shared with the delegated commands).
 
-## Procedure (run from the wiki repo root)
+## Procedure (run from the workspace root)
 
 1. **Preflight.** Confirm the core tools + wiki are present; if anything's missing, **stop** and point to
    **`/wiki-doctor`**:
    ```bash
    [ -f .claude/wiki.config.sh ] && . .claude/wiki.config.sh
    : "${WIKI_DIR:=wiki}"
-   [ -d "$WIKI_DIR" ] || { echo "❌ Run from the wiki repo root (where $WIKI_DIR/ lives)."; exit 1; }
+   [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /wiki-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
    command -v node >/dev/null || { echo "⚠️ node missing — run /wiki-doctor first."; exit 1; }
    ```
 

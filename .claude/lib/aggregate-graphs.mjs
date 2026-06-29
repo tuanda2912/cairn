@@ -26,10 +26,17 @@ for (const r of repos) {
   const repoPath = abs(r.path || '.');
   const graphPath = abs(r.graph || join(r.path || '.', '.understand-anything/knowledge-graph.json'));
   const entry = { name: r.name || repoPath, path: repoPath, graphExists: existsSync(graphPath) };
-  if (!entry.graphExists) { entry.note = 'no graph — run /understand on this repo'; out.push(entry); continue; }
+  if (!entry.graphExists) { entry.fresh = false; entry.note = 'no graph — run /understand on this repo'; out.push(entry); continue; }
 
-  const g = JSON.parse(readFileSync(graphPath, 'utf8'));
-  const byId = Object.fromEntries(g.nodes.map((n) => [n.id, n]));
+  let g, byId;
+  try {
+    g = JSON.parse(readFileSync(graphPath, 'utf8'));
+    if (!g || !Array.isArray(g.nodes)) throw new Error('graph has no nodes[] array');
+    byId = Object.fromEntries(g.nodes.map((n) => [n.id, n]));
+  } catch (e) {
+    entry.broken = true; entry.fresh = false; entry.note = `unreadable graph: ${e.message}`;
+    out.push(entry); continue;
+  }
   entry.languages = [...new Set((g.project?.languages || []).map((l) => String(l).toLowerCase()))];
   entry.layers = (g.layers || []).map((l) => ({
     name: l.name,
@@ -39,7 +46,9 @@ for (const r of repos) {
 
   // staleness (graph commit vs repo HEAD, ignoring the graph's own artifacts)
   const metaPath = join(dirname(graphPath), 'meta.json');
-  const graphCommit = existsSync(metaPath) ? (JSON.parse(readFileSync(metaPath, 'utf8')).gitCommitHash || '') : '';
+  let graphCommit = '';
+  try { if (existsSync(metaPath)) graphCommit = JSON.parse(readFileSync(metaPath, 'utf8')).gitCommitHash || ''; }
+  catch (e) { entry.broken = true; entry.note = `unreadable meta.json: ${e.message}`; }
   let head = '', changed = [];
   try { head = execSync(`git -C "${repoPath}" rev-parse HEAD`, { encoding: 'utf8' }).trim(); } catch { /* not git */ }
   if (graphCommit && head && graphCommit !== head) {
@@ -50,20 +59,22 @@ for (const r of repos) {
   }
   entry.graphCommit = graphCommit.slice(0, 12);
   entry.head = head.slice(0, 12);
-  entry.fresh = Boolean(graphCommit && head) && changed.length === 0;
+  entry.fresh = !entry.broken && Boolean(graphCommit && head) && changed.length === 0;
   entry.sourceChanged = changed.length;
   out.push(entry);
 }
 
 const allLangs = [...new Set(out.flatMap((e) => e.languages || []))];
-const anyStale = out.some((e) => e.graphExists && !e.fresh);
+const anyBroken = out.some((e) => e.broken);
+const anyStaleOrMissing = out.some((e) => !e.graphExists || !e.fresh);
 console.log(JSON.stringify({
   workspace: {
     repoCount: repos.length,
     languages: allLangs,
     topologyHint: repos.length > 1 ? 'microservices (multi-repo)' : 'single-repo',
-    allFresh: !anyStale,
+    allFresh: !anyStaleOrMissing && !anyBroken,
   },
   repos: out,
 }, null, 2));
-process.exit(anyStale ? 1 : 0); // fail-closed: nonzero if any repo's graph has source drift
+// fail-closed exit codes: 2 = broken graph input · 1 = any repo stale or missing-graph · 0 = all fresh
+process.exit(anyBroken ? 2 : (anyStaleOrMissing ? 1 : 0));

@@ -4,7 +4,7 @@ This is the **schema layer**: the operating manual an LLM reads when working in 
 kit. It turns a generic assistant into a disciplined second-brain maintainer. **Read this first.**
 
 > **This file is generic — never edit it per project.** Everything project-specific lives in
-> **[`wiki.context.md`](wiki.context.md)** at the wiki repo root (name · domain · topology · sources · how to
+> **[`wiki.context.md`](wiki.context.md)** at the workspace root (name · domain · topology · sources · how to
 > organize the wiki · glossary · special rules). **Read `wiki.context.md` before doing any wiki work** and
 > tailor to it; if it's missing, run **`/wiki-setup`** to scaffold it (it auto-detects topology), or fall
 > back to sensible defaults. List every project's profile across your machine with **`/wiki-projects`**.
@@ -49,6 +49,7 @@ LLM does it, the human curates sources and asks questions.
 wiki/
   index.md            catalog of every page, by category — READ FIRST on any query
   log.md              append-only record of ingests / queries / lints
+  sources.md          every raw source: path, format, freshness, which pages it feeds
   <pages>.md          one topic per page (subsystem / concept / feature / decision / …)
 feature-map.md        the layer-3 artifact (written by /lodestar)
 <raw sources>         read-only — the docs/specs/code the wiki is built from

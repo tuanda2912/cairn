@@ -1,5 +1,5 @@
 {
-  "//": "Config for the /lodestar skill. Lives at the WORKSPACE root (beside/above your code). Paths are RELATIVE to the workspace root so they travel across machines/clones. A filled-in microservices example is in examples/hark/.",
+  "//": "Config for the /lodestar skill (this file lives beside SKILL.md in .claude/skills/lodestar/). Its PATHS are relative to the WORKSPACE root — the dir holding .claude/ + wiki/ — so they travel across machines/clones. A filled-in microservices example is in examples/hark/.",
 
   "wikiDir": "wiki",
   "output": "wiki/feature-map.md",

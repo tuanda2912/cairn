@@ -19,9 +19,9 @@ Caller hint: **$ARGUMENTS** — an optional domain to filter by.
    ```bash
    [ -f .claude/wiki.config.sh ] && . .claude/wiki.config.sh
    : "${PROJECTS_ROOT:=$HOME}"
-   type expand_path >/dev/null 2>&1 || expand_path(){ printf '%s' "${1/#\~/$HOME}"; }
+   type expand_path >/dev/null 2>&1 || expand_path(){ case "$1" in "~/"*) printf '%s/%s' "$HOME" "${1#\~/}";; "~") printf '%s' "$HOME";; *) printf '%s' "$1";; esac; }
    ROOT="$(expand_path "$PROJECTS_ROOT")"
-   DOMAIN="$ARGUMENTS"; DOMAIN="${DOMAIN//[[:space:]]/}"
+   DOMAIN=$(printf '%s' "$ARGUMENTS" | tr -d '[:space:]')
    node .claude/lib/list-projects.mjs "$ROOT" ${DOMAIN:+--domain "$DOMAIN"}
    ```
 2. Present the table (NAME · DOMAIN · TOPOLOGY · STATUS · PATH). If filtering by domain, say so. If none are

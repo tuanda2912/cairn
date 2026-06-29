@@ -1,6 +1,6 @@
 # wiki.config.sh — where the /wiki-* commands look for things.
-# Sourced from the WIKI REPO ROOT. Edit the values to point at where your code / docs / wiki actually
-# live. Paths may be RELATIVE to the wiki repo root or ABSOLUTE; $HOME and a leading ~ are expanded.
+# Sourced from the WORKSPACE ROOT. Edit the values to point at where your code / docs / wiki actually
+# live. Paths may be RELATIVE to the workspace root or ABSOLUTE; $HOME and a leading ~ are expanded.
 # Leave a value blank to fall back to its default.
 #
 # Safe to commit (defaults are generic). For machine-specific ABSOLUTE paths, DON'T edit this file —
@@ -34,7 +34,7 @@ DOCS_SOURCE=""
 #       (common when your sources are local or live in the code repo).
 CLOUD_SEARCH_ROOT="$HOME/Library/CloudStorage"
 CLOUD_DOCS_NAME=""
-#    c) Local mirror the docs are synced INTO (relative to the wiki repo root, or absolute):
+#    c) Local mirror the docs are synced INTO (relative to the workspace root, or absolute):
 DOCS_MIRROR="raw-docs"
 
 # --- helpers (the commands call these; you don't normally edit below) ---
@@ -49,7 +49,7 @@ resolve_code_repo() {
     */*|/*|.*|~*) expand_path "$alias_in"; return ;;  # looks like a path → use literally
   esac
   var="CODE_$(printf '%s' "$alias_in" | tr '[:lower:]-' '[:upper:]_')"
-  eval "val=\$$var"   # portable indirection (bash/dash/zsh): expands $CODE_<ALIAS>
+  eval "val=\${$var:-}"   # portable indirection, set -u-safe (the :- yields '' for an unset CODE_<ALIAS>)
   if [ -n "${val:-}" ]; then expand_path "$val"; else expand_path "$alias_in"; fi
 }
 

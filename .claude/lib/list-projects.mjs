@@ -9,12 +9,17 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const args = process.argv.slice(2);
-const root = args.find((a) => !a.startsWith('--'));
-const di = args.indexOf('--domain');
-const domainFilter = di >= 0 ? (args[di + 1] || '').toLowerCase() : null;
-const depthI = args.indexOf('--depth');
-const maxDepth = depthI >= 0 ? parseInt(args[depthI + 1] || '4', 10) : 4;
+const argv = process.argv.slice(2);
+const positional = [];
+let domainFilter = null, depthFlag = null;
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === '--domain') domainFilter = (argv[++i] || '').toLowerCase() || null;
+  else if (argv[i] === '--depth') depthFlag = parseInt(argv[++i] || '', 10);
+  else if (argv[i].startsWith('--')) { /* unknown flag — ignore */ }
+  else positional.push(argv[i]);
+}
+const root = positional[0];                                    // first true positional (not a flag value)
+const maxDepth = (depthFlag == null || Number.isNaN(depthFlag)) ? 4 : depthFlag;
 if (!root) { console.error('Usage: list-projects.mjs <root> [--domain <d>] [--depth <n>]'); process.exit(2); }
 
 const SKIP = new Set(['node_modules', '.git', '.understand-anything', 'dist', 'build', '.next', 'vendor', 'target']);
@@ -46,7 +51,7 @@ let rows = found.map((p) => {
     name: fm.name || '?', domain: fm.domain || '—', topology: fm.topology || '—',
     status: fm.status || '—', path: p.replace(/\/wiki\.context\.md$/, ''),
   };
-}).filter((r) => !r.name.startsWith('<'));  // skip un-filled template copies
+}).filter((r) => r.name !== '?' && !r.name.startsWith('<'));  // skip un-filled templates + garbled frontmatter
 
 if (domainFilter) rows = rows.filter((r) => r.domain.toLowerCase() === domainFilter);
 rows.sort((a, b) => (a.domain + a.name).localeCompare(b.domain + b.name));

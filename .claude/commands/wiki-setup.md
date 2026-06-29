@@ -15,11 +15,11 @@ committed framework**.
 Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `CODE_MAIN`), `docs`
 (→ `DOCS_SOURCE`), `wiki` (→ `WIKI_DIR`), `mirror` (→ `DOCS_MIRROR`). Anything not passed is asked interactively.
 
-## Procedure (run from the wiki repo root)
+## Procedure (run from the workspace root)
 
 1. **Show what's set now** (defaults merged with any existing local override):
    ```bash
-   [ -f .claude/wiki.config.sh ] || { echo "❌ Run from the wiki repo root (no .claude/wiki.config.sh)."; exit 1; }
+   [ -f .claude/wiki.config.sh ] || { echo "❌ Run from the workspace root (no .claude/wiki.config.sh)."; exit 1; }
    . .claude/wiki.config.sh
    echo "Current effective config:"
    echo "  CODE_MAIN    = ${CODE_MAIN}"
@@ -33,8 +33,9 @@ Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `C
    user in plain language** — show the current value and let them keep it (press enter) or type a new path.
    The one that matters most is **`code`** (where the repo to analyze lives). The **docs source** is
    optional: a path → sets `DOCS_SOURCE`; blank/`none` → no external docs (sources live in the code repo).
-   Paths may be absolute, relative to the wiki repo root, or use `~` — don't force absolute. To analyze
-   **more than one repo**, mention they can add `CODE_<NAME>="…"` lines + a `resolve_code_repo` case by hand.
+   Paths may be absolute, relative to the workspace root, or use `~` — don't force absolute. To analyze
+   **more than one repo**, they add `CODE_<NAME>="…"` lines and list the aliases in `CODE_REPOS` — no
+   `resolve_code_repo` edit needed (it resolves `CODE_<ALIAS>` automatically by indirection).
 
 3. **Validate (warn, don't block)** — a path that doesn't exist yet is fine (they may clone it later):
    ```bash
@@ -55,7 +56,7 @@ Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `C
    - Confirm it's gitignored (it is, via `.claude/wiki.config.local.sh` in `.gitignore`) — note that.
 
 5. **Scaffold the project context** (`wiki.context.md` — the per-project profile the framework reads):
-   - If `wiki.context.md` doesn't exist at the wiki repo root, create it from the kit's template.
+   - If `wiki.context.md` doesn't exist at the workspace root, create it from the kit's template.
    - **Auto-detect topology** (propose, don't decide) — once a code graph exists:
      ```bash
      node .claude/skills/lodestar/query-graph.mjs topology "<code>/.understand-anything/knowledge-graph.json" "<code>"

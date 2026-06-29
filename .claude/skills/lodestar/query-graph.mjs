@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// query-graph.mjs — deterministic, zero-LLM helpers for the /feature-map skill.
+// query-graph.mjs — deterministic, zero-LLM helpers for the /lodestar skill.
 // Reads an understand-anything knowledge graph (JSON) + git; slices by layer/tag,
 // checks staleness. This is the "router" half of the framework: structured lookups
 // that need no model inference (see SKILL.md §Principles — "deterministic routing").
@@ -31,14 +31,24 @@ function usage(code = 2) {
 }
 if (!cmd || !graphPath) usage();
 
-// --- stale: fail-closed staleness check (exit 1 when graph != code HEAD) ---
+// --- stale: fail-closed staleness check (0=fresh · 1=stale/missing · 2=broken input) ---
 if (cmd === 'stale') {
   const repo = rest[0];
   if (!repo) usage();
+  // Graph absent entirely → a distinct signal ("build it", not "refresh a stale one").
+  if (!existsSync(graphPath)) {
+    console.log(JSON.stringify({ graphMissing: true, fresh: false, hint: 'no graph — run /understand on this repo first' }, null, 2));
+    process.exit(1);
+  }
   const metaPath = join(dirname(graphPath), 'meta.json');
-  const graphCommit = existsSync(metaPath)
-    ? (JSON.parse(readFileSync(metaPath, 'utf8')).gitCommitHash || '')
-    : '';
+  let graphCommit = '';
+  try {
+    if (existsSync(metaPath)) graphCommit = JSON.parse(readFileSync(metaPath, 'utf8')).gitCommitHash || '';
+  } catch (e) {
+    console.error(`broken meta.json at ${metaPath}: ${e.message}`);
+    console.log(JSON.stringify({ brokenInput: true, fresh: false }, null, 2));
+    process.exit(2); // distinct from 1 (stale) so the caller can tell "corrupt" from "stale"
+  }
   let head = '', changed = [];
   try { head = execSync(`git -C "${repo}" rev-parse HEAD`, { encoding: 'utf8' }).trim(); } catch { /* not a git repo */ }
   if (graphCommit && head && graphCommit !== head) {
@@ -50,16 +60,25 @@ if (cmd === 'stale') {
   // The graph's own artifacts are not source drift — exclude them so a commit that only
   // re-committed .understand-anything/ doesn't read as stale.
   const sourceChanged = changed.filter((p) => !p.startsWith('.understand-anything/'));
+  const notGitRepo = !head;
   const fresh = Boolean(graphCommit && head) && sourceChanged.length === 0;
   console.log(JSON.stringify({
     graphCommit: graphCommit.slice(0, 12), head: head.slice(0, 12),
-    fresh, commitMatch: graphCommit === head,
+    fresh, commitMatch: graphCommit === head, notGitRepo,
     sourceChangedCount: sourceChanged.length, sourceChanged
   }, null, 2));
-  process.exit(fresh ? 0 : 1); // nonzero ⇒ real source drift; caller must refresh or warn (fail-closed)
+  process.exit(fresh ? 0 : 1); // nonzero ⇒ source drift / not-a-git-repo; caller must refresh or warn (fail-closed)
 }
 
-const g = JSON.parse(readFileSync(graphPath, 'utf8'));
+// graph load for the layer/tag/topology/node-tags commands — fail-closed on broken input (exit 2)
+let g;
+try {
+  g = JSON.parse(readFileSync(graphPath, 'utf8'));
+  if (!g || !Array.isArray(g.nodes)) throw new Error('graph has no nodes[] array');
+} catch (e) {
+  console.error(`broken/unreadable graph at ${graphPath}: ${e.message}`);
+  process.exit(2); // distinct from 1 — broken input, not a clean "stale" signal
+}
 const byId = Object.fromEntries(g.nodes.map((n) => [n.id, n]));
 
 if (cmd === 'layers') {
@@ -106,18 +125,17 @@ if (cmd === 'topology') {
   const langs = [...new Set((g.project?.languages || []).map((l) => String(l).toLowerCase()))]
     .filter((l) => CODE_LANGS.has(l));
   const signals = [];
-  let micro = 0, mono = 0;
+  let structural = 0; // STRONG, filesystem-based service-boundary signals (the real evidence)
 
-  // Polyglot is the killer signal: different languages ⇒ no shared compiler ⇒ microservices.
-  if (langs.length >= 2) { micro += 3; signals.push(`polyglot (${langs.join(', ')}) — no shared compiler across languages → strong microservices signal`); }
-  else { mono += 1; signals.push(`single code language: ${langs[0] || 'unknown'}`); }
+  // Polyglot is only a WEAK hint — in-repo polyglot is NORMAL for monoliths (a build script, docs,
+  // or a deploy toolkit in another language). On its own it is NOT evidence of service boundaries.
+  if (langs.length >= 2) signals.push(`polyglot (${langs.join(', ')}) — weak hint only; in-repo polyglot is common in monoliths`);
+  else signals.push(`single code language: ${langs[0] || 'unknown'}`);
   signals.push(`${(g.layers || []).length} graph layers`);
 
   const has = (p) => { try { statSync(join(repo, p)); return true; } catch { return false; } };
   if (repo) {
-    if (['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'].some(has)) { micro += 3; signals.push('docker-compose present → service orchestration (microservices signal)'); }
-    if (has('Procfile')) { micro += 1; signals.push('Procfile present (multiple processes)'); }
-    for (const d of ['services', 'apps', 'packages']) if (has(d)) { micro += 1; signals.push(`monorepo dir "${d}/" — possibly multiple deployables`); }
+    if (['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'].some(has)) { structural += 3; signals.push('docker-compose present → service orchestration (STRONG microservices signal)'); }
     let pkgUnits = 0;
     try {
       for (const e of readdirSync(repo, { withFileTypes: true })) {
@@ -125,14 +143,20 @@ if (cmd === 'topology') {
         if (['package.json', 'go.mod', 'Cargo.toml', 'pom.xml', 'pyproject.toml'].some((mf) => has(join(e.name, mf)))) pkgUnits++;
       }
     } catch { /* unreadable */ }
-    if (pkgUnits >= 2) { micro += 2; signals.push(`${pkgUnits} sub-directory build manifests → multiple build units (microservices signal)`); }
+    if (pkgUnits >= 2) { structural += 3; signals.push(`${pkgUnits} sub-directory build manifests → multiple build roots (STRONG microservices signal)`); }
+    if (has('Procfile')) { structural += 1; signals.push('Procfile present (multiple processes)'); }
+    for (const d of ['services', 'apps', 'packages']) if (has(d)) { structural += 1; signals.push(`monorepo dir "${d}/" present`); }
   } else {
-    signals.push('(no repoDir passed — deploy-manifest signals skipped; pass <repoDir> to detect docker-compose / monorepo)');
+    signals.push('(no repoDir passed — filesystem signals skipped; pass <repoDir> to detect docker-compose / multiple build roots)');
   }
 
-  const proposal = micro > mono ? 'microservices' : (mono > micro ? 'monolith' : 'uncertain');
-  console.log(JSON.stringify({ proposal, microScore: micro, monoScore: mono, languages: langs, signals }, null, 2));
-  console.error('\n# PROPOSAL ONLY — topology is a deployment fact code alone cannot fully prove. Confirm with the user before writing it to wiki.context.md / lodestar.config.json.');
+  // Microservices requires a STRUCTURAL boundary signal; polyglot alone does NOT qualify.
+  const proposal = structural >= 3 ? 'microservices' : 'monolith';
+  if (proposal === 'monolith' && langs.length >= 2) {
+    signals.push('verdict: polyglot but no service-boundary signal (no docker-compose / multiple build roots) → treated as MONOLITH');
+  }
+  console.log(JSON.stringify({ proposal, structuralScore: structural, languages: langs, signals }, null, 2));
+  console.error('\n# PROPOSAL ONLY — topology is a deployment fact code alone cannot prove. A MULTI-REPO workspace (several CODE_* repos) is microservices regardless of this single-repo guess. Confirm with the user.');
   process.exit(0);
 }
 

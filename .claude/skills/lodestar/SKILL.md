@@ -19,7 +19,7 @@ this persists only what you *can't* grep (intent, gaps, cross-service contracts)
 
 Read [`lodestar.config.json`](lodestar.config.json) (next to this file). It declares: the wiki dir, the code
 repo(s) + their graph, the topology, the feature sources, and (for micro) the service partition +
-cross-service contracts. **Paths are relative to the wiki repo root** so the skill travels across machines.
+cross-service contracts. **Paths are relative to the workspace root** so the skill travels across machines.
 To reuse on another project: copy `.claude/`, edit the config.
 
 Helper (deterministic, zero-LLM): [`query-graph.mjs`](query-graph.mjs) — staleness check + graph slices.

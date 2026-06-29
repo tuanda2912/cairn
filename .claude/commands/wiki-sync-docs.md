@@ -15,7 +15,7 @@ Optional focus from the caller: **$ARGUMENTS** (if given, prioritise that file/t
 > `DOCS_MIRROR`, and the raw source: set **`DOCS_SOURCE`** to a direct path (any folder / cloud-drive /
 > network mount — it wins when set), or set `CLOUD_DOCS_NAME` to auto-discover a cloud library. No source
 > configured ⇒ this command has nothing to sync (skip it; build the wiki from in-repo sources instead).
-> Run from the **wiki repo root**.
+> Run from the **workspace root**.
 
 ## Procedure
 
@@ -25,14 +25,14 @@ Optional focus from the caller: **$ARGUMENTS** (if given, prioritise that file/t
    [ -f .claude/wiki.config.sh ] && . .claude/wiki.config.sh
    : "${WIKI_DIR:=wiki}" ; : "${DOCS_MIRROR:=raw-docs}"
    type resolve_docs_source >/dev/null 2>&1 || resolve_docs_source(){ [ -n "$DOCS_SOURCE" ] && printf '%s' "${DOCS_SOURCE/#\~/$HOME}"; }
-   [ -d "$WIKI_DIR" ] || { echo "❌ Run from the wiki repo root (where $WIKI_DIR/ lives)."; exit 1; }
+   [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /wiki-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
    SRC=$(resolve_docs_source)
    [ -n "$SRC" ] && [ -d "$SRC" ] || { echo "ℹ️ No raw-docs source configured/found — set DOCS_SOURCE (or CLOUD_DOCS_NAME) in .claude/wiki.config.sh, or skip this command if your sources live in the code repo. (/wiki-doctor)"; exit 1; }
    command -v rsync >/dev/null || { echo "❌ rsync missing — run /wiki-doctor."; exit 1; }
    MD="$HOME/.local/bin/markitdown"; [ -x "$MD" ] || MD=$(command -v markitdown) || echo "⚠️ markitdown missing (only needed for binary docx/xlsx/pdf/pptx) — run /wiki-doctor."
    mkdir -p "$DOCS_MIRROR"
    echo "source: $SRC   |   mirror: $DOCS_MIRROR   |   wiki: $WIKI_DIR"
-   rsync -rcn --delete --exclude='.DS_Store' -i "$SRC/" "$DOCS_MIRROR/" | grep -E '^(>|<|\*deleting)'
+   rsync -rcn --delete --exclude='.DS_Store' -i "$SRC/" "$DOCS_MIRROR/" | grep -E '^(>|<|\*deleting)' || true
    ```
    - Lines starting with `>` / `<` / `*deleting` are **real changes**; `.f..T....` (time-only) is noise.
    - **No matching lines ⇒ docs already current.** Report "Sources already in sync (checksum-verified, N

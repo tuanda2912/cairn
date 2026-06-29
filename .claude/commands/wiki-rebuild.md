@@ -24,7 +24,7 @@ Caller hint: **$ARGUMENTS** (`force` = proceed even if the wiki already has page
 : "${WIKI_DIR:=wiki}" ; : "${DOCS_MIRROR:=raw-docs}"
 type resolve_code_repo  >/dev/null 2>&1 || resolve_code_repo(){ echo "${1:-../code}"; }
 type resolve_docs_source >/dev/null 2>&1 || resolve_docs_source(){ [ -n "$DOCS_SOURCE" ] && printf '%s' "${DOCS_SOURCE/#\~/$HOME}"; }
-[ -d .claude ] || { echo "❌ Run from the wiki repo root."; exit 1; }
+[ -d .claude ] || { echo "❌ Run from the workspace root."; exit 1; }
 CODE="$(resolve_code_repo main)" ; SRC=$(resolve_docs_source)
 [ -d "$DOCS_MIRROR" ] || [ -n "$SRC" ] || echo "ℹ️ no external docs — the wiki will be built from in-repo sources (README/docs/ADRs) + the code graph."
 [ -f "$CODE/.understand-anything/knowledge-graph.json" ] || echo "⚠️ no code graph at $CODE — run /wiki-sync-code (or /understand $CODE) first, else the code-map pages can't be built."

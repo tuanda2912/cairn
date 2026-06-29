@@ -1,5 +1,5 @@
 {
-  "//": "Config for the /feature-map skill. Paths are RELATIVE to the wiki repo root (this file's repo) so they travel across machines/clones. To reuse on another project: copy the .claude/ folder, then edit this file. Fields marked (derived) are populated by running the skill on a fresh project.",
+  "//": "Config for the /lodestar skill. Paths are RELATIVE to the workspace root (this file's repo) so they travel across machines/clones. To reuse on another project: copy the .claude/ folder, then edit this file. Fields marked (derived) are populated by running the skill on a fresh project.",
 
   "wikiDir": "wiki",
   "output": "wiki/feature-map.md",
