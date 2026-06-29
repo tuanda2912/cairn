@@ -91,7 +91,7 @@ if (cmd === 'layers') {
 
 if (cmd === 'layer-files') {
   const name = rest.join(' ');
-  const l = (g.layers || []).find((x) => x.name.toLowerCase() === name.toLowerCase());
+  const l = (g.layers || []).find((x) => (x.name || '').toLowerCase() === name.toLowerCase());
   if (!l) { console.error(`layer not found: ${name}`); process.exit(1); }
   for (const n of (l.nodeIds || []).map((id) => byId[id]).filter((x) => x && FILE_LEVEL.has(x.type))) {
     console.log(n.filePath || n.name);

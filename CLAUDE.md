@@ -51,7 +51,7 @@ wiki/
   log.md              append-only record of ingests / queries / lints
   sources.md          every raw source: path, format, freshness, which pages it feeds
   <pages>.md          one topic per page (subsystem / concept / feature / decision / …)
-feature-map.md        the layer-3 artifact (written by /lodestar)
+  feature-map.md      the layer-3 artifact (written by /lodestar)
 <raw sources>         read-only — the docs/specs/code the wiki is built from
 ```
 

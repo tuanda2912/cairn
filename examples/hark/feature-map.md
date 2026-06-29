@@ -110,8 +110,10 @@ property, on a real (not synthetic) app.
   (§3, ~10 rows) + the process partition (§1) + the contracts (§2).
 - ✅ **The cross-service contract is the real payload.** Unlike a single-language monolith (shared compiler), Hark's polyglot WS
   seam is un-greppable *and* un-compilable — so enumerating it (§2/§4) is where the map earns its keep.
-- ✅ **Graph is fresh** (`69d53bc`, 4 files behind HEAD `8e7d009`) — no re-run needed. Status grounded in
-  STATUS.md, the project's own source of truth.
+- ⚠ **Graph is 4 commits behind HEAD** (`69d53bc` → `8e7d009`). Freshness, per the framework's own gate
+  (`query-graph.mjs stale`), is *source* drift only — it ignores `.understand-anything/` artifacts. Confirm
+  those commits don't touch the seam files before trusting the map; if any do, it's stale and `/lodestar`
+  must re-run. Status grounded in STATUS.md, the project's own source of truth.
 - ⚠ **The wire mirror is the one thing to keep honest.** `RagWireTests.swift` guards the engine side; there
   is **no committed renderer/main test runner** ([[STATUS|STATUS.md]] open thread 7). Candidate next step:
   a `vitest`/`node --test` contract test that asserts `engine.service.ts` matches the Swift frames — turning

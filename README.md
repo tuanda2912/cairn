@@ -80,6 +80,7 @@ cp -R wikillm-framework/.claude  wikillm-framework/wiki  wikillm-framework/CLAUD
 /wiki-setup        # interactive — writes a gitignored local path override + scaffolds wiki.context.md
 /wiki-doctor       # verifies node + the understand-anything plugin + that paths resolve
 #   also edit .claude/skills/lodestar/lodestar.config.json: topology, services[], contracts[]
+#   (topology auto-detects once the graph exists — step 3; until then it's left blank and /lodestar confirms it)
 
 # 3. build the code graph (layer 1)
 /understand /path/to/code-repo            # or: /wiki-sync-code

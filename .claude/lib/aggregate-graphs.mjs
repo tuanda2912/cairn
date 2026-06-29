@@ -16,8 +16,21 @@ const [, , configPath, workspaceRootArg] = process.argv;
 if (!configPath) { console.error('Usage: aggregate-graphs.mjs <lodestar.config.json> [workspaceRoot]'); process.exit(2); }
 
 const root = workspaceRootArg ? resolve(workspaceRootArg) : process.cwd();
-const config = JSON.parse(readFileSync(configPath, 'utf8'));
+let config;
+try {
+  config = JSON.parse(readFileSync(configPath, 'utf8'));
+} catch (e) {
+  // Broken/missing config is broken INPUT (exit 2), not staleness (exit 1) — match query-graph.mjs.
+  console.error(`broken/unreadable config at ${configPath}: ${e.message}`);
+  process.exit(2);
+}
 const repos = config.codeRepos || [];
+if (repos.length === 0) {
+  // Zero graphs to verify is NOT "all fresh" — fail-closed so /lodestar can't build on nothing.
+  console.error('no codeRepos[] in config — nothing to verify (fail-closed)');
+  console.log(JSON.stringify({ workspace: { repoCount: 0, languages: [], allFresh: false, note: 'no codeRepos configured' }, repos: [] }, null, 2));
+  process.exit(1);
+}
 const FILE_LEVEL = new Set(['file', 'config', 'document', 'service']);
 const abs = (p) => (isAbsolute(p) ? p : resolve(root, p));
 
