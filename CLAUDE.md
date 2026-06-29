@@ -71,7 +71,9 @@ wiki/
 - **Query** (answer a question): read `index.md` first, drill into the relevant pages, answer **with
   citations**. If the answer is valuable and missing, **file it back** as a page so explorations compound.
 - **Lint** (periodic health check): stale claims, broken links, orphan pages, gaps, contradictions, pages
-  citing a superseded decision as current. Report + fix.
+  citing a superseded decision as current. Report + fix. Run **`/cairn-lint`** — it pairs a deterministic,
+  zero-LLM structural pass (`lib/lint-wiki.mjs`: frontmatter · index↔files · link/marker integrity) with a
+  fail-closed graph-staleness gate and the semantic judgments above; `--fix` applies only the safe ones.
 
 ### Hard rules
 - **Sources are read-only to the wiki.** Editing a source is a normal dev change, never a side effect of an
@@ -100,6 +102,7 @@ setup:        install understand-anything · copy .claude/ + this CLAUDE.md · /
 bootstrap:    /understand <code>   →   build the wiki (or /cairn-rebuild)   →   /lodestar
 keep fresh:   /cairn-sync-all  =  /cairn-sync-docs  →  /cairn-sync-code  →  /lodestar   (all incremental)
               docs changed → re-ingest · code changed → re-derive code pages · then re-map features → files
+verify:       /cairn-lint   — health-check what was generated (structural + staleness + semantic); --fix the safe ones
 ```
 
 ## First principles (don't relitigate)

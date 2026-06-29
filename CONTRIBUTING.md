@@ -18,13 +18,15 @@ The deterministic helpers run with plain Node — no build step:
 ```bash
 node .claude/skills/lodestar/query-graph.mjs     # prints usage
 node .claude/lib/aggregate-graphs.mjs            # prints usage
+node .claude/lib/lint-wiki.mjs wiki              # structural lint of a wiki dir (powers /cairn-lint)
 ```
 
 ## Ground rules (the framework's own principles apply to the framework)
 
 - **`CLAUDE.md` is generic — never make it project-specific.** Per-project content lives in `wiki.context.md`.
-- **Keep the fail-closed exit-code contract** in the helper scripts: `0` = fresh, `1` = stale/missing,
-  `2` = broken input. Don't regress it (it's there on purpose).
+- **Keep the fail-closed exit-code contract** in the helper scripts: `0` = fresh/clean, `1` = stale/issues,
+  `2` = broken input. Don't regress it (it's there on purpose). (`lint-wiki.mjs` follows the same shape:
+  `0` = clean/warnings, `1` = ≥1 error, `2` = no wiki dir.)
 - **Persist what you can't grep.** New behaviour should keep the kit lean — intent / gaps / cross-service
   contracts, not a code-search index.
 - **Verify what you touch.** `node --check` the scripts and run them against a sample graph before opening a PR.

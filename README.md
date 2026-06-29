@@ -145,13 +145,14 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
 .claude/
   wiki.config.sh             portable path config — code repo(s), docs source, wiki dir, projects root
   commands/                  maintenance commands (layer-2 automation):
-    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-projects
+    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-lint · cairn-projects
   skills/lodestar/
     SKILL.md                 the /lodestar procedure + canonical output template
     lodestar.config.json     the per-project routing manifest (topology · services · contracts)
     query-graph.mjs          deterministic helper: staleness gate · graph slices · topology detection
   lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /cairn-projects)
   lib/aggregate-graphs.mjs   multi-repo: per-repo staleness + service partition (powers /lodestar on N repos)
+  lib/lint-wiki.mjs          deterministic structural lint: frontmatter · index↔files · links · markers (powers /cairn-lint)
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
 ```
 
@@ -165,6 +166,7 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
 | `/cairn-sync-code` | incremental `/understand` update → re-derive the wiki's code-map pages |
 | `/cairn-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
 | `/cairn-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
+| `/cairn-lint` | health-check the generated wiki + feature-map: structural lint + staleness gate + semantic checks; `--fix` the safe ones |
 | `/cairn-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
 | `/lodestar` | build/refresh the feature→file map (layer 3) — the part with Cairn's name on it |
 
