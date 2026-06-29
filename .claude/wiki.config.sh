@@ -10,6 +10,11 @@
 # 1) The wiki knowledge base (relative to this repo root, or absolute).
 WIKI_DIR="wiki"
 
+# 1b) Where your projects live — scanned by /wiki-projects to list every project that has a
+#     wiki.context.md (its frontmatter = name/domain/topology). Point at the parent of your repos.
+#         PROJECTS_ROOT="$HOME/Documents/project"
+PROJECTS_ROOT="$HOME"
+
 # 2) Code repositories analyzed by /wiki-sync-code and /wiki-rebuild.
 #    >>> THIS is the main thing to set. One variable per repo; point at where the code actually lives.
 #        CODE_MAIN="../my-app"

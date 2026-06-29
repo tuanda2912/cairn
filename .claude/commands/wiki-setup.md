@@ -5,11 +5,12 @@ argument-hint: "(optional) inline overrides, e.g. code=~/projects/my-app docs=~/
 
 # Configure wiki locations (wikillm)
 
-First-run (or whenever your paths move) setup: ask where **this machine's** code / docs / wiki actually live
-and persist it — so the user **never hand-edits the committed config**. Values are written to
-**`.claude/wiki.config.local.sh`**, which is **gitignored** and sourced last by
-[`.claude/wiki.config.sh`](../wiki.config.sh) to override the committed defaults. That keeps personal
-absolute paths out of the shared repo.
+First-run (or whenever your paths move) setup. Two things: **(a)** persist where **this machine's** code /
+docs / wiki live to **`.claude/wiki.config.local.sh`** (gitignored, sourced last by
+[`.claude/wiki.config.sh`](../wiki.config.sh) to override the committed defaults — keeps personal absolute
+paths out of the shared repo); and **(b)** scaffold **`wiki.context.md`**, the per-project profile (name ·
+domain · auto-detected topology) the framework reads to tailor the wiki — so the user **never hand-edits the
+committed framework**.
 
 Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `CODE_MAIN`), `docs`
 (→ `DOCS_SOURCE`), `wiki` (→ `WIKI_DIR`), `mirror` (→ `DOCS_MIRROR`). Anything not passed is asked interactively.
@@ -53,15 +54,29 @@ Caller hint: **$ARGUMENTS** — optional `key=value` pairs. Keys: `code` (→ `C
    - If the override already exists, **Read it first**, then only rewrite changed lines.
    - Confirm it's gitignored (it is, via `.claude/wiki.config.local.sh` in `.gitignore`) — note that.
 
-5. **Verify** by running the probe (or invoke **`/wiki-doctor`**):
+5. **Scaffold the project context** (`wiki.context.md` — the per-project profile the framework reads):
+   - If `wiki.context.md` doesn't exist at the wiki repo root, create it from the kit's template.
+   - **Auto-detect topology** (propose, don't decide) — once a code graph exists:
+     ```bash
+     node .claude/skills/lodestar/query-graph.mjs topology "<code>/.understand-anything/knowledge-graph.json" "<code>"
+     ```
+     Show the user the proposal + the signals it found (polyglot? docker-compose? monorepo?), and let them
+     **confirm** `monolith` / `microservices`. If no graph yet, leave `topology` blank and detect on the next run.
+   - **Ask** for `name` + `domain` (one tag — what `/wiki-projects` filters on).
+   - Write `name` / `domain` / `topology` / `status` / `updated` into the **frontmatter**, and prompt the
+     user to fill the prose sections (what it is · sources · organization · glossary). Mirror `topology` into
+     `lodestar.config.json` too.
+
+6. **Verify** by running the probe (or invoke **`/wiki-doctor`**):
    ```bash
    . .claude/wiki.config.sh
    echo "code:main   → $(resolve_code_repo main)"
    echo "docs-source → $(resolve_docs_source)"
    ```
 
-6. **Summarise**: what was written, where (the gitignored local file), and the next step — **`/wiki-doctor`**
-   to confirm tools, then **`/understand <code>`** + **`/wiki-sync-all`** (or **`/wiki-rebuild`**) to populate the wiki.
+7. **Summarise**: what was written (the path override + `wiki.context.md`), the detected topology + domain,
+   and the next step — **`/wiki-doctor`** to confirm tools, then **`/understand <code>`** +
+   **`/wiki-sync-all`** (or **`/wiki-rebuild`**) to populate the wiki, then **`/lodestar`**.
 
 ## Guardrails
 - Writes **only** `.claude/wiki.config.local.sh` (assignment lines). Never edits the committed

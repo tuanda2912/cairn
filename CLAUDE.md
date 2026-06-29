@@ -3,6 +3,12 @@
 This is the **schema layer**: the operating manual an LLM reads when working in a project that adopted this
 kit. It turns a generic assistant into a disciplined second-brain maintainer. **Read this first.**
 
+> **This file is generic — never edit it per project.** Everything project-specific lives in
+> **[`wiki.context.md`](wiki.context.md)** at the wiki repo root (name · domain · topology · sources · how to
+> organize the wiki · glossary · special rules). **Read `wiki.context.md` before doing any wiki work** and
+> tailor to it; if it's missing, run **`/wiki-setup`** to scaffold it (it auto-detects topology), or fall
+> back to sensible defaults. List every project's profile across your machine with **`/wiki-projects`**.
+
 The second brain is **three layers**. Each is maintained differently; together they answer both *"what do I
 know?"* and *"if I change feature X, which files move?"*
 

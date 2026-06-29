@@ -10,8 +10,9 @@
 //   node query-graph.mjs layer-files <graph.json> "<layer name>"# files in a layer (the service partition)
 //   node query-graph.mjs tag-files   <graph.json> <tag>         # files carrying a capability tag
 //   node query-graph.mjs node-tags   <graph.json>               # "<filePath>\t<tag,tag,...>" per file (seed the vocab)
+//   node query-graph.mjs topology    <graph.json> [repoDir]     # PROPOSE monolith|microservices from languages + deploy manifests
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 
@@ -24,7 +25,8 @@ function usage(code = 2) {
   query-graph.mjs layers      <graph.json>
   query-graph.mjs layer-files <graph.json> "<layer name>"
   query-graph.mjs tag-files   <graph.json> <tag>
-  query-graph.mjs node-tags   <graph.json>`);
+  query-graph.mjs node-tags   <graph.json>
+  query-graph.mjs topology    <graph.json> [repoDir]`);
   process.exit(code);
 }
 if (!cmd || !graphPath) usage();
@@ -92,6 +94,45 @@ if (cmd === 'node-tags') {
   for (const n of g.nodes.filter((n) => FILE_LEVEL.has(n.type))) {
     console.log(`${n.filePath || n.name}\t${(n.tags || []).join(',')}`);
   }
+  process.exit(0);
+}
+
+// --- topology: PROPOSE monolith vs microservices (detect-and-confirm, never decide) ---
+if (cmd === 'topology') {
+  const repo = rest[0]; // optional repo dir for filesystem signals
+  const CODE_LANGS = new Set(['typescript', 'javascript', 'python', 'swift', 'go', 'rust', 'java',
+    'kotlin', 'ruby', 'c', 'c++', 'cpp', 'csharp', 'c#', 'php', 'scala', 'solidity', 'objective-c',
+    'dart', 'elixir']);
+  const langs = [...new Set((g.project?.languages || []).map((l) => String(l).toLowerCase()))]
+    .filter((l) => CODE_LANGS.has(l));
+  const signals = [];
+  let micro = 0, mono = 0;
+
+  // Polyglot is the killer signal: different languages ⇒ no shared compiler ⇒ microservices.
+  if (langs.length >= 2) { micro += 3; signals.push(`polyglot (${langs.join(', ')}) — no shared compiler across languages → strong microservices signal`); }
+  else { mono += 1; signals.push(`single code language: ${langs[0] || 'unknown'}`); }
+  signals.push(`${(g.layers || []).length} graph layers`);
+
+  const has = (p) => { try { statSync(join(repo, p)); return true; } catch { return false; } };
+  if (repo) {
+    if (['docker-compose.yml', 'docker-compose.yaml', 'compose.yml', 'compose.yaml'].some(has)) { micro += 3; signals.push('docker-compose present → service orchestration (microservices signal)'); }
+    if (has('Procfile')) { micro += 1; signals.push('Procfile present (multiple processes)'); }
+    for (const d of ['services', 'apps', 'packages']) if (has(d)) { micro += 1; signals.push(`monorepo dir "${d}/" — possibly multiple deployables`); }
+    let pkgUnits = 0;
+    try {
+      for (const e of readdirSync(repo, { withFileTypes: true })) {
+        if (!e.isDirectory() || e.name.startsWith('.') || e.name === 'node_modules') continue;
+        if (['package.json', 'go.mod', 'Cargo.toml', 'pom.xml', 'pyproject.toml'].some((mf) => has(join(e.name, mf)))) pkgUnits++;
+      }
+    } catch { /* unreadable */ }
+    if (pkgUnits >= 2) { micro += 2; signals.push(`${pkgUnits} sub-directory build manifests → multiple build units (microservices signal)`); }
+  } else {
+    signals.push('(no repoDir passed — deploy-manifest signals skipped; pass <repoDir> to detect docker-compose / monorepo)');
+  }
+
+  const proposal = micro > mono ? 'microservices' : (mono > micro ? 'monolith' : 'uncertain');
+  console.log(JSON.stringify({ proposal, microScore: micro, monoScore: mono, languages: langs, signals }, null, 2));
+  console.error('\n# PROPOSAL ONLY — topology is a deployment fact code alone cannot fully prove. Confirm with the user before writing it to wiki.context.md / lodestar.config.json.');
   process.exit(0);
 }
 

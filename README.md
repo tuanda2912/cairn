@@ -87,15 +87,17 @@ cp -R wikillm-framework/.claude  wikillm-framework/CLAUDE.md  /path/to/your/wiki
 ## What's in here
 
 ```
-CLAUDE.md                    the WikiLLM operating manual (layer 2) + how the 3 layers chain
+CLAUDE.md                    the WikiLLM operating manual — GENERIC, never edit per project
+wiki.context.md              THE per-project profile you fill (name · domain · topology · sources · glossary · rules)
 .claude/
-  wiki.config.sh             portable path config — code repo(s), docs source, wiki dir (or run /wiki-setup)
+  wiki.config.sh             portable path config — code repo(s), docs source, wiki dir, projects root
   commands/                  wiki-maintenance commands (layer-2 automation):
-    wiki-setup · wiki-doctor · wiki-sync-docs · wiki-sync-code · wiki-sync-all · wiki-rebuild
+    wiki-setup · wiki-doctor · wiki-sync-docs · wiki-sync-code · wiki-sync-all · wiki-rebuild · wiki-projects
   skills/lodestar/
     SKILL.md                 the /lodestar procedure + canonical output template
-    lodestar.config.json     the portable per-project manifest (edit this)
-    query-graph.mjs          deterministic, zero-LLM helper: staleness gate + graph slices
+    lodestar.config.json     the per-project routing manifest (topology · services · contracts)
+    query-graph.mjs          deterministic helper: staleness gate · graph slices · topology detection
+  lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /wiki-projects)
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
 examples/
   hark/                      a real worked example — a polyglot multi-process (microservices) app
@@ -113,6 +115,7 @@ examples/
 | `/wiki-sync-code` | incremental `/understand` update → re-derive the wiki's code-map pages |
 | `/wiki-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
 | `/wiki-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
+| `/wiki-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
 
 ## Principles (the rules that keep it from rotting)
 
