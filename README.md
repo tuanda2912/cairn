@@ -155,6 +155,7 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
   lib/lint-wiki.mjs          deterministic structural lint: frontmatter · index↔files · links · markers · hot.md staleness (powers /cairn-lint)
   lib/safe-name.mjs          sanitize an LLM-derived name into a safe filename slug (write-boundary guard)
   lib/guard-remote.mjs       fail-closed: refuse to write the wiki inside a repo with a public remote
+                             (opt out per-project for OSS: CAIRN_ALLOW_PUBLIC_REMOTE=1 or a .cairn-allow-public marker)
   lib/manifest.mjs           source → derived-page provenance for correct incremental sync (powers /cairn-sync-docs)
   lib/eval-lodestar.mjs      grep-baseline scorer + PASS/FAIL ship-gate (powers /cairn-eval)
   lib/query-wiki.mjs         zero-dep BM25 retrieval over the wiki (powers /cairn-query)

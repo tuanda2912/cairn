@@ -21,6 +21,9 @@ node .claude/lib/guard-remote.mjs || exit 1   # the brain must never live in a p
 ```
 A non-zero guard exit is a **BLOCKER**: do not write anything — tell the user to move the workspace out of
 the pushable repo (the second brain must never be committable to a code repo on a third-party host).
+**Exception — open-source projects with no confidential content** may opt out explicitly (the guard then
+exits 0 with a loud ⚠ warning instead of blocking): set `CAIRN_ALLOW_PUBLIC_REMOTE=1`, or drop a
+`.cairn-allow-public` marker at the workspace root. Default stays fail-closed everywhere else.
 
 ## Procedure
 
