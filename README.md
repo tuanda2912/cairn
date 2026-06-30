@@ -145,14 +145,20 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
 .claude/
   wiki.config.sh             portable path config — code repo(s), docs source, wiki dir, projects root
   commands/                  maintenance commands (layer-2 automation):
-    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-save · cairn-lint · cairn-eval · cairn-query · cairn-fold · cairn-projects
+    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-save · cairn-lint · cairn-guard · cairn-eval · cairn-query · cairn-fold · cairn-upgrade · cairn-projects
+  cairn.version              the deployed kit's version stamp (reconciled by /cairn-upgrade)
   skills/lodestar/
     SKILL.md                 the /lodestar procedure + canonical output template
     lodestar.config.json     the per-project routing manifest (topology · services · contracts)
     query-graph.mjs          deterministic helper: staleness gate · graph slices · topology detection
   lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /cairn-projects)
   lib/aggregate-graphs.mjs   multi-repo: per-repo staleness + service partition (powers /lodestar on N repos)
-  lib/lint-wiki.mjs          deterministic structural lint: frontmatter · index↔files · links · markers · hot.md staleness (powers /cairn-lint)
+  lib/lint-wiki.mjs          deterministic structural lint: frontmatter · index↔files · links · markers · hot.md staleness · density · secrets (powers /cairn-lint)
+  lib/density.mjs            anti-sprawl helpers: thin-page + tag-overlap detection (powers /cairn-lint density hints)
+  lib/scan-secrets.mjs       content-side confidentiality scan for leaked secrets/keys (powers /cairn-guard + lint warnings)
+  lib/stale-pages.mjs        surgical per-page staleness from the manifest — which pages a changed source owns (powers /cairn-lint)
+  lib/upgrade-kit.mjs        diff + sync framework files from a source Cairn checkout into a deployed kit (powers /cairn-upgrade)
+  lib/receipt.mjs            standard proof-of-work receipt every command ends with (op · counts · elapsed)
   lib/safe-name.mjs          sanitize an LLM-derived name into a safe filename slug (write-boundary guard)
   lib/guard-remote.mjs       fail-closed: refuse to write the wiki inside a repo with a public remote
                              (opt out per-project for OSS: CAIRN_ALLOW_PUBLIC_REMOTE=1 or a .cairn-allow-public marker)
@@ -177,10 +183,12 @@ package.json                 `npm test` → `node --test` (no dependencies)
 | `/cairn-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
 | `/cairn-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
 | `/cairn-save` | capture a source-less decision / ADR / gap as a wiki page + refresh `hot.md` (commits on your say-so) |
-| `/cairn-lint` | health-check the generated wiki + feature-map: structural lint + staleness gate + semantic checks; `--fix` the safe ones |
+| `/cairn-lint` | health-check the generated wiki + feature-map: structural lint + graph & **per-page** staleness + density hints + secret scan + semantic checks; `--fix` the safe ones |
+| `/cairn-guard` | fail-closed content scan for leaked secrets/keys before a wiki goes public (the content-side complement to the remote-host guard) |
 | `/cairn-eval` | prove the feature→file map beats grep — score vs an honest grep baseline against a ground-truth corpus, PASS/FAIL gate |
 | `/cairn-query` | answer a question from the wiki — BM25-routed, token-budgeted, cited; files back if valuable |
 | `/cairn-fold` | roll up old `log.md` entries into a dated fold page (extractive) to keep the log skimmable |
+| `/cairn-upgrade` | pull framework fixes from a source Cairn checkout into this deployed kit (dry-run first; never touches your config or wiki) |
 | `/cairn-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
 | `/lodestar` | build/refresh the feature→file map (layer 3) — the part with Cairn's name on it |
 

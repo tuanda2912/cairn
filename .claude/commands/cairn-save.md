@@ -61,3 +61,5 @@ exits 0 with a loud ⚠ warning instead of blocking): set `CAIRN_ALLOW_PUBLIC_RE
 - **Never commit without say-so.** Propose the diff; the human commits.
 - **Never write outside `$WIKI_DIR/`**, and never into a pushable public repo (the preflight guard enforces this).
 - **No invention.** Every non-obvious claim cites something; uncertainty is a `> TODO:`.
+- **Content safety.** If this workspace opted into a public remote (`.cairn-allow-public`), run **`/cairn-guard`**
+  before committing — a source-less capture must never carry a secret into a public page.
