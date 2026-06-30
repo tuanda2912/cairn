@@ -61,7 +61,7 @@ LLM does it, the human curates sources and asks questions.
 wiki/
   index.md            catalog of every page, by category — READ FIRST on any query
   hot.md              warm cache of un-greppable working state — READ FIRST; a cache, not a journal (gitignored)
-  log.md              append-only record of ingests / queries / lints
+  log.md              append-only record of ingests / queries / lints (roll up old entries with /cairn-fold)
   sources.md          every raw source: path, format, freshness, which pages it feeds
   <pages>.md          one topic per page (subsystem / concept / feature / decision / …)
   feature-map.md      the layer-3 artifact (written by /lodestar)
@@ -86,6 +86,7 @@ wiki/
   source-driven; if a doc records it, that's Ingest, not Capture.
 - **Query** (answer a question): read `index.md` first, drill into the relevant pages, answer **with
   citations**. If the answer is valuable and missing, **file it back** as a page so explorations compound.
+  Run **`/cairn-query`** — a zero-dep BM25 router picks the pages; token-budgeted in 3 depth tiers.
 - **Lint** (periodic health check): stale claims, broken links, orphan pages, gaps, contradictions, pages
   citing a superseded decision as current. Report + fix. Run **`/cairn-lint`** — it pairs a deterministic,
   zero-LLM structural pass (`lib/lint-wiki.mjs`: frontmatter · index↔files · link/marker integrity) with a

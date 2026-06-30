@@ -145,7 +145,7 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
 .claude/
   wiki.config.sh             portable path config — code repo(s), docs source, wiki dir, projects root
   commands/                  maintenance commands (layer-2 automation):
-    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-save · cairn-lint · cairn-eval · cairn-projects
+    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-save · cairn-lint · cairn-eval · cairn-query · cairn-fold · cairn-projects
   skills/lodestar/
     SKILL.md                 the /lodestar procedure + canonical output template
     lodestar.config.json     the per-project routing manifest (topology · services · contracts)
@@ -157,6 +157,8 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
   lib/guard-remote.mjs       fail-closed: refuse to write the wiki inside a repo with a public remote
   lib/manifest.mjs           source → derived-page provenance for correct incremental sync (powers /cairn-sync-docs)
   lib/eval-lodestar.mjs      grep-baseline scorer + PASS/FAIL ship-gate (powers /cairn-eval)
+  lib/query-wiki.mjs         zero-dep BM25 retrieval over the wiki (powers /cairn-query)
+  lib/fold-log.mjs           extractive log.md rollup into fold pages (powers /cairn-fold)
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
 eval/                        the grep-baseline ship-gate: corpus.example.json + README (powers /cairn-eval)
 tests/                       zero-dep `node --test` suite for the .mjs helpers (npm test)
@@ -176,6 +178,8 @@ package.json                 `npm test` → `node --test` (no dependencies)
 | `/cairn-save` | capture a source-less decision / ADR / gap as a wiki page + refresh `hot.md` (commits on your say-so) |
 | `/cairn-lint` | health-check the generated wiki + feature-map: structural lint + staleness gate + semantic checks; `--fix` the safe ones |
 | `/cairn-eval` | prove the feature→file map beats grep — score vs an honest grep baseline against a ground-truth corpus, PASS/FAIL gate |
+| `/cairn-query` | answer a question from the wiki — BM25-routed, token-budgeted, cited; files back if valuable |
+| `/cairn-fold` | roll up old `log.md` entries into a dated fold page (extractive) to keep the log skimmable |
 | `/cairn-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
 | `/lodestar` | build/refresh the feature→file map (layer 3) — the part with Cairn's name on it |
 
