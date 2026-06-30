@@ -9,3 +9,16 @@ raw-docs/
 
 # machine-specific wiki paths (written by /cairn-setup)
 .claude/wiki.config.local.sh
+
+# The populated wiki is the SECOND BRAIN — possibly confidential/NDA'd project knowledge. It must never
+# be committable to this (pushable) kit repo. Ship only the starter scaffold; ignore every instance page
+# (incl. hot.md, feature-map.md, and any decisions/ pages). A deployed workspace is a SEPARATE dir.
+wiki/*
+!wiki/index.md
+!wiki/log.md
+
+# sync provenance (source → derived pages) — instance state, never committed
+.cairn-manifest.json
+
+# your real eval corpus references your code's paths/feature names — keep only the example in the kit
+eval/corpus.json

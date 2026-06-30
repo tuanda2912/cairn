@@ -25,6 +25,18 @@ A **monolith** workspace points at one code repo; a **microservices** workspace 
 workspace's *code*, not of where the brain lives. Keeping the brain outside the code repo is
 non-negotiable — it must never land in a pushable code repo.
 
+## Read order — the hookless load contract
+
+Cairn ships **no SessionStart hook** (a hooked vault auto-injects context; Cairn won't). So this is a
+**contract, not an automation**: before any wiki work, read these in order — they are the context a hook
+would have loaded.
+1. **[`wiki.context.md`](wiki.context.md)** — this project's profile + **conventions & special rules** (link style, status vocab, confidentiality): the enforced context.
+2. **`wiki/hot.md`** — the warm cache of un-greppable working state, if present (a cache, not a journal).
+3. **`wiki/index.md`** — the catalog, to route into only the pages you need.
+
+`/cairn-lint` warns when `wiki.context.md` is missing or `hot.md` has gone stale — the closest a hookless kit
+gets to enforcing this load.
+
 ---
 
 ## Layer 1 — the code graph (understand-anything)
@@ -48,6 +60,7 @@ LLM does it, the human curates sources and asks questions.
 ```
 wiki/
   index.md            catalog of every page, by category — READ FIRST on any query
+  hot.md              warm cache of un-greppable working state — READ FIRST; a cache, not a journal (gitignored)
   log.md              append-only record of ingests / queries / lints
   sources.md          every raw source: path, format, freshness, which pages it feeds
   <pages>.md          one topic per page (subsystem / concept / feature / decision / …)
@@ -68,6 +81,9 @@ wiki/
 ### Operations
 - **Ingest** (a new/changed source arrives): read it, update the affected page(s), refresh any supersession
   links, update `index.md`, append a `log.md` entry. One source may touch several pages.
+- **Capture** (a decision/gap with **no source file**): run **`/cairn-save`** — record source-less intent
+  (the *why*, a trade-off, a known gap) as a page, then refresh `hot.md`. Distinct from Ingest, which is
+  source-driven; if a doc records it, that's Ingest, not Capture.
 - **Query** (answer a question): read `index.md` first, drill into the relevant pages, answer **with
   citations**. If the answer is valuable and missing, **file it back** as a page so explorations compound.
 - **Lint** (periodic health check): stale claims, broken links, orphan pages, gaps, contradictions, pages
@@ -115,3 +131,6 @@ verify:       /cairn-lint   — health-check what was generated (structural + st
   warn when the graph lags code HEAD.
 - **Capability = stable; feature-ID = volatile.** Never bind a feature-ID directly to a filename; they meet
   through the capability tag.
+- **Model-tier the work.** A deterministic router answers what it can with zero LLM calls; Haiku does the
+  bulk collection/judgement (dedup, candidate ranking); Opus synthesises and writes. Cache any LLM-derived
+  artifact on `sha256(model + input)` so it self-invalidates when the model changes.

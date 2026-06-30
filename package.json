@@ -1,0 +1,11 @@
+{
+  "name": "cairn",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cairn — a self-maintaining second brain that maps every feature to the files that implement it.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  }
+}

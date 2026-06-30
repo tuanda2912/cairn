@@ -1,0 +1,33 @@
+{
+  "//": "Cairn eval corpus — the grep-baseline ship-gate. Copy to eval/corpus.json and replace these self-contained fixtures with REAL queries (set repo + graph, use grepTerms + capability + ground-truth expected[]). See eval/README.md. The fixtures below hard-code baseline/candidate so the example runs green with no code repo.",
+  "version": 1,
+  "repo": "../code",
+  "graph": "../code/.understand-anything/knowledge-graph.json",
+  "gate": { "minAbsolute": 0.5, "minDeltaPP": 20 },
+  "queries": [
+    {
+      "id": "feature-login",
+      "category": "feature",
+      "feature": "user login",
+      "expected": ["src/auth/login.ts", "src/auth/session.ts"],
+      "baseline": ["src/auth/login.ts"],
+      "candidate": ["src/auth/login.ts", "src/auth/session.ts"]
+    },
+    {
+      "id": "feature-billing",
+      "category": "feature",
+      "feature": "monthly billing",
+      "expected": ["src/billing/invoice.ts", "src/billing/charge.ts", "src/jobs/cron.ts"],
+      "baseline": ["src/billing/invoice.ts"],
+      "candidate": ["src/billing/invoice.ts", "src/billing/charge.ts", "src/jobs/cron.ts"]
+    },
+    {
+      "id": "contract-feed-sse",
+      "category": "contract",
+      "feature": "realtime feed (cross-service SSE seam grep can't see)",
+      "expected": ["api/feed.ts", "web/useFeed.ts"],
+      "baseline": [],
+      "candidate": ["api/feed.ts", "web/useFeed.ts"]
+    }
+  ]
+}

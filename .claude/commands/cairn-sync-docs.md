@@ -23,7 +23,7 @@ Optional focus from the caller: **$ARGUMENTS** (if given, prioritise that file/t
    (checksum) and filter to actual content changes:
    ```bash
    [ -f .claude/wiki.config.sh ] && . .claude/wiki.config.sh
-   : "${WIKI_DIR:=wiki}" ; : "${DOCS_MIRROR:=raw-docs}"
+   : "${WIKI_DIR:=wiki}" ; : "${DOCS_MIRROR:=raw-docs}" ; : "${MANIFEST:=.cairn-manifest.json}"
    type resolve_docs_source >/dev/null 2>&1 || resolve_docs_source(){ [ -n "$DOCS_SOURCE" ] && printf '%s' "${DOCS_SOURCE/#\~/$HOME}"; }
    [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /cairn-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
    SRC=$(resolve_docs_source)
@@ -51,17 +51,26 @@ Optional focus from the caller: **$ARGUMENTS** (if given, prioritise that file/t
    ```bash
    TMP=$(mktemp -d); "$MD" "<changed-file>" -o "$TMP/<name>.md"
    ```
-   Note doc **versions** (a `…_v2` supersedes earlier ones for that topic).
+   Note doc **versions** (a `…_v2` supersedes earlier ones for that topic). Confirm a real content change
+   before re-ingesting: `node .claude/lib/manifest.mjs check "$MANIFEST" "<source>" "$(node .claude/lib/manifest.mjs hash <changed-file>)"` → `new|changed|unchanged` (skip `unchanged`).
 
 4. **Ingest into the wiki** (under `$WIKI_DIR/`). Update the page(s) the change touches, plus
    `index.md` and `sources.md`. Cross-link; cite the source file + section. Refresh any supersession links.
+   Then **record provenance** so the next sync is correct — the pages this source produced:
+   ```bash
+   node .claude/lib/manifest.mjs record "$MANIFEST" "<source path>" "<source hash>" "wiki/<page1>.md" "wiki/<page2>.md"
+   ```
+   This mechanizes the `source → pages` map `sources.md` describes (grep can't answer "which pages came from this source").
 
 5. **Flag contradictions.** Where the new source diverges from what the wiki (or the code) says, verify
    against the **actual source**, record it, and surface it. If a feature/requirement gained or lost code,
    note it for `/lodestar`.
 
-6. **Log it.** Add a dated entry to `$WIKI_DIR/log.md` (per the wiki's log format): files changed
-   (old→new version), pages updated, contradictions flagged. Remove `$TMP`.
+6. **Log it + reconcile deletions.** Add a dated entry to `$WIKI_DIR/log.md` (files changed old→new,
+   pages updated, contradictions flagged). For any **upstream-deleted** source (a confirmed `*deleting`
+   from step 1), retire the pages it solely owned — list them with
+   `node .claude/lib/manifest.mjs pages "$MANIFEST" "<source>"`, act on them, then
+   `node .claude/lib/manifest.mjs prune "$MANIFEST" "<source>"`. Remove `$TMP`.
 
 7. **Summarise**: files changed, pages updated, contradictions — or "already current".
 

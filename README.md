@@ -145,15 +145,22 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
 .claude/
   wiki.config.sh             portable path config — code repo(s), docs source, wiki dir, projects root
   commands/                  maintenance commands (layer-2 automation):
-    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-lint · cairn-projects
+    cairn-setup · cairn-doctor · cairn-sync-docs · cairn-sync-code · cairn-sync-all · cairn-rebuild · cairn-save · cairn-lint · cairn-eval · cairn-projects
   skills/lodestar/
     SKILL.md                 the /lodestar procedure + canonical output template
     lodestar.config.json     the per-project routing manifest (topology · services · contracts)
     query-graph.mjs          deterministic helper: staleness gate · graph slices · topology detection
   lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /cairn-projects)
   lib/aggregate-graphs.mjs   multi-repo: per-repo staleness + service partition (powers /lodestar on N repos)
-  lib/lint-wiki.mjs          deterministic structural lint: frontmatter · index↔files · links · markers (powers /cairn-lint)
+  lib/lint-wiki.mjs          deterministic structural lint: frontmatter · index↔files · links · markers · hot.md staleness (powers /cairn-lint)
+  lib/safe-name.mjs          sanitize an LLM-derived name into a safe filename slug (write-boundary guard)
+  lib/guard-remote.mjs       fail-closed: refuse to write the wiki inside a repo with a public remote
+  lib/manifest.mjs           source → derived-page provenance for correct incremental sync (powers /cairn-sync-docs)
+  lib/eval-lodestar.mjs      grep-baseline scorer + PASS/FAIL ship-gate (powers /cairn-eval)
   agents/feature-mapper.md   the agent that proposes feature→capability+status rows (you approve)
+eval/                        the grep-baseline ship-gate: corpus.example.json + README (powers /cairn-eval)
+tests/                       zero-dep `node --test` suite for the .mjs helpers (npm test)
+package.json                 `npm test` → `node --test` (no dependencies)
 ```
 
 ### Commands
@@ -166,7 +173,9 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
 | `/cairn-sync-code` | incremental `/understand` update → re-derive the wiki's code-map pages |
 | `/cairn-sync-all` | the one-shot: docs → code → `/lodestar`, incrementally |
 | `/cairn-rebuild` | bootstrap the whole wiki from scratch (fresh machine / lost wiki) |
+| `/cairn-save` | capture a source-less decision / ADR / gap as a wiki page + refresh `hot.md` (commits on your say-so) |
 | `/cairn-lint` | health-check the generated wiki + feature-map: structural lint + staleness gate + semantic checks; `--fix` the safe ones |
+| `/cairn-eval` | prove the feature→file map beats grep — score vs an honest grep baseline against a ground-truth corpus, PASS/FAIL gate |
 | `/cairn-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
 | `/lodestar` | build/refresh the feature→file map (layer 3) — the part with Cairn's name on it |
 
@@ -189,7 +198,11 @@ Built on [Karpathy's WikiLLM pattern](https://gist.github.com/karpathy/442a6bf55
 [understand-anything](https://github.com/Lum1104/Understand-Anything) code graphs. Maintenance mechanics (the
 `@generated` sentinel markers, the link-integrity / index-consistency lint) borrow from the broader
 WikiLLM-second-brain ecosystem; the **feature→file + code-graph + computed-staleness seam** is the part those
-tools don't cover — and the part Cairn exists to be. Cairn bundles no third-party code — understand-anything
+tools don't cover — and the part Cairn exists to be. Patterns such as the warm `hot.md` cache, source-less
+`/cairn-save` capture, and the grep-baseline eval gate are **re-implemented from the ideas** (no code
+vendored) of the Claude + Obsidian ecosystem, notably
+[claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) (MIT) — credit to AgriciDaniel. Cairn
+bundles no third-party code — understand-anything
 is installed separately as a plugin (its own license applies), and WikiLLM is the upstream pattern it builds
 on.
 

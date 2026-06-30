@@ -22,7 +22,7 @@ const quiet = args.includes('--quiet');
 const wikiDir = args.find((a) => !a.startsWith('-')) || 'wiki';
 
 // Pages the wiki treats specially — they have their own shape, not the per-topic page frontmatter contract.
-const SPECIAL = new Set(['index.md', 'log.md', 'sources.md', 'feature-map.md']);
+const SPECIAL = new Set(['index.md', 'log.md', 'sources.md', 'feature-map.md', 'hot.md']);
 const REQUIRED_FM = ['type', 'title', 'status', 'sources', 'updated', 'tags'];
 const STATUS_VALUES = new Set(['current', 'planned', 'superseded']);
 
@@ -210,6 +210,21 @@ if (existsSync(logPath)) {
   add('warning', 'log', 'log.md', 'log.md is missing — the append-only ingest/query/lint history');
 }
 
+// --- hot.md staleness (the warm cache must not lag the newest log entry) ---------------------------
+const hotPath = join(wikiDir, 'hot.md');
+if (existsSync(hotPath)) {
+  const hotText = pageText.get(resolve(hotPath)) || readFileSync(hotPath, 'utf8');
+  const hotFm = frontmatter(hotText) || {};
+  const hotDate = (hotFm.updated || '').trim();
+  const logText = existsSync(logPath) ? (pageText.get(resolve(logPath)) || '') : '';
+  const logDates = [...logText.matchAll(/^##\s+\[(\d{4}-\d{2}-\d{2})\]/gm)].map((m) => m[1]).sort();
+  const newestLog = logDates[logDates.length - 1];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(hotDate))
+    add('warning', 'hot', 'hot.md', 'no valid updated: date — cannot verify the warm cache is fresh (treat as cold)');
+  else if (newestLog && hotDate < newestLog)
+    add('warning', 'hot', 'hot.md', `stale: updated ${hotDate} but log.md has a ${newestLog} entry — refresh via /cairn-save or a sync (treat as cold until then)`);
+}
+
 // --- sources.md cross-reference (best-effort string match) ----------------------------------------
 if (existsSync(sourcesPath)) {
   const srcText = pageText.get(resolve(sourcesPath)) || '';
@@ -236,6 +251,10 @@ for (const p of allMd) {
     if (/(^|\s)(>?\s*)TODO:/.test(ln)) add('info', 'todo', rel(p), `open TODO: ${ln.trim().slice(0, 100)}`, i + 1);
   });
 }
+
+// --- wiki.context.md presence (the Read-order contract's enforced-context page) -------------------
+if (!existsSync(resolve(wikiDir, '..', 'wiki.context.md')))
+  add('warning', 'context', 'wiki.context.md', 'missing — the per-project conventions/profile the Read-order contract loads first (run /cairn-setup)');
 
 // --- summarise ------------------------------------------------------------------------------------
 const starter = pagesScanned === 0;
