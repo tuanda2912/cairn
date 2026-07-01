@@ -27,12 +27,14 @@ type resolve_docs_source >/dev/null 2>&1 || resolve_docs_source(){ [ -n "$DOCS_S
 [ -d .claude ] || { echo "❌ Run from the workspace root."; exit 1; }
 CODE="$(resolve_code_repo main)" ; SRC=$(resolve_docs_source)
 [ -d "$DOCS_MIRROR" ] || [ -n "$SRC" ] || echo "ℹ️ no external docs — the wiki will be built from in-repo sources (README/docs/ADRs) + the code graph."
-[ -f "$CODE/.understand-anything/knowledge-graph.json" ] || echo "⚠️ no code graph at $CODE — run /cairn-sync-code (or /understand $CODE) first, else the code-map pages can't be built."
+GP="$(type resolve_graph_provider >/dev/null 2>&1 && resolve_graph_provider || echo none)"
+[ "$GP" = "none" ] && echo "ℹ️ no code graph (GRAPH_PROVIDER=none / none present) — WIKI-ONLY rebuild: code-map pages come from in-repo README/docs/ADRs, not a graph." || echo "graph provider: $GP"
 [ -d "$WIKI_DIR" ] && [ -n "$(ls -A "$WIKI_DIR" 2>/dev/null)" ] && echo "NOTE: $WIKI_DIR/ already has content — only overwrite if the user passed 'force' or confirms."
 echo "wiki=$WIKI_DIR  docs=$DOCS_MIRROR (source=$SRC)  code:main=$CODE"
 ```
-- If the code graph is missing, tell the user to run **`/cairn-sync-code`** (or `/understand <code>`) first
-  (and **`/cairn-doctor`** if tools/paths are off), then stop.
+- **No code graph is fine** — proceed **wiki-only** (sources + in-repo README/docs/ADRs); the code-map and
+  feature-map pages are derived from the docs, not a graph. To add graph power later, set `GRAPH_PROVIDER` +
+  run `/cairn-sync-code`, then `/lodestar`. Run **`/cairn-doctor`** if tools/paths are off.
 - If the wiki already has pages and `force` was **not** given, **ask** before overwriting.
 
 ## Procedure

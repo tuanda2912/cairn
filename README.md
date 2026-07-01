@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Claude Code kit](https://img.shields.io/badge/Claude%20Code-kit-8A2BE2.svg)](https://docs.anthropic.com/en/docs/claude-code)
-[![Layer 1: understand-anything](https://img.shields.io/badge/code%20graph-understand--anything-2ea44f.svg)](https://github.com/Lum1104/Understand-Anything)
+[![Code graph: optional](https://img.shields.io/badge/code%20graph-optional-lightgrey.svg)](https://github.com/Lum1104/Understand-Anything)
 
 > A self-maintaining second brain that maps every feature to the files that implement it — **including the edges grep and the compiler can't see.**
 
@@ -34,9 +34,10 @@ but adds the thing that pattern alone never does: it **links the knowledge wiki 
   Cairn won't pretend.
 - **Monolith or microservices.** Topology is auto-detected; microservices add a **service partition** plus
   the **cross-service contracts** (wire/API/event/IPC/deploy), sourced from the contract files.
-- **Reuses the code graph — never re-tags.** [understand-anything](https://github.com/Lum1104/Understand-Anything)
-  already tags every file and assigns a layer; that *is* the capability layer, refreshed for free. The only
-  hand-owned artifact is a small `feature → capability + status` register.
+- **Reuses a code graph if you have one — never re-tags.** With an optional provider (recommended
+  [understand-anything](https://github.com/Lum1104/Understand-Anything)) every file is already tagged + layered;
+  that *is* the capability layer, refreshed for free. **Without one**, the wiki's subsystem pages are the
+  capability layer — wiki-only still works. The only hand-owned artifact is a small `feature → capability + status` register.
 - **Token-lean and human-approved.** A deterministic router answers lookups with zero LLM calls; the
   `feature-mapper` agent drafts the register, and you own the `status`/`gap` column.
 
@@ -47,7 +48,7 @@ feature X, which files move?"*
 
 | # | Layer | What it is | Driven by | Where |
 |---|---|---|---|---|
-| 1 | **Code graph** | a knowledge graph of the codebase (files, layers, tags, summaries) | [understand-anything](https://github.com/Lum1104/Understand-Anything) (`/understand`) | external plugin (install once — below) |
+| 1 | **Code graph** *(optional)* | a knowledge graph of the codebase (files, layers, tags, summaries) | a pluggable **provider** — recommended [understand-anything](https://github.com/Lum1104/Understand-Anything) (`/understand`) | external plugin — install only if you want it |
 | 2 | **WikiLLM wiki** | the LLM-maintained knowledge base | Karpathy's three-layer pattern | **`CLAUDE.md`** (the operating manual, in this repo) |
 | 3 | **Feature → file map** | feature → capability → files (+ status & gaps) | **`/lodestar`** skill + `feature-mapper` agent | `.claude/` (in this repo) |
 
@@ -67,17 +68,18 @@ feature  →  capability (stable tag)  →  files
 ## Requirements
 
 Cairn is a **Claude Code** kit — its commands, skills, and agent run inside Claude Code (the `.claude/`
-slash-command / skill / agent format), not as a standalone CLI. You also need the **understand-anything**
-plugin for layer 1 (Node ≥ 22, pnpm ≥ 10).
+slash-command / skill / agent format), not as a standalone CLI. The zero-dep `lib/` helpers need **Node ≥ 22**.
+The **code graph (layer 1) is optional**: install a provider only if you want the feature→file auto-map and
+the staleness gate — otherwise Cairn runs fully as a **wiki-only** second brain.
 
 ## Setup (once per machine)
 
-Get Cairn, then install the understand-anything plugin (layer 1) — it's not bundled (it's a whole plugin):
+Get Cairn. The code-graph provider is **optional** — add understand-anything only if you want layer 1:
 
 ```bash
 git clone https://github.com/tuanda2912/cairn.git
 
-# then, in Claude Code:
+# OPTIONAL — a code graph (layer 1). Skip it to run wiki-only (GRAPH_PROVIDER=none). In Claude Code:
 /plugin marketplace add Lum1104/Understand-Anything
 /plugin install understand-anything
 # needs Node ≥ 22 and pnpm ≥ 10 (the plugin builds a local core package on its first run)
@@ -112,14 +114,13 @@ cp -R cairn/.claude  cairn/wiki  cairn/CLAUDE.md  cairn/wiki.context.md  /path/t
 
 # 2. point it at your project + check deps (run from the WORKSPACE root)
 /cairn-setup        # interactive — writes a gitignored local path override + scaffolds wiki.context.md
-/cairn-doctor       # verifies node + the understand-anything plugin + that paths resolve
+/cairn-doctor       # verifies node, resolves paths, reports the graph provider (none = wiki-only, fine)
 #   also edit .claude/skills/lodestar/lodestar.config.json: topology, services[], contracts[]
-#   (topology auto-detects once the graph exists — step 3; until then it's left blank and /lodestar confirms it)
 
-# 3. build the code graph (layer 1)
-/understand /path/to/code-repo            # or: /cairn-sync-code
+# 3. OPTIONAL — build a code graph (layer 1). Skip to run wiki-only (GRAPH_PROVIDER=none).
+/understand /path/to/code-repo            # or: /cairn-sync-code   (needs a graph provider installed)
 
-# 4. BOOTSTRAP the wiki (layer 2) — authors every page from your sources + the graph
+# 4. BOOTSTRAP the wiki (layer 2) — authors every page from your sources (+ the graph, if present)
 /cairn-rebuild                             # the starter wiki/ is empty until you do this
 
 # 5. map features → files (layer 3)
@@ -151,6 +152,8 @@ wiki/                        the knowledge base (ships as an empty starter; /cai
     SKILL.md                 the /lodestar procedure + canonical output template
     lodestar.config.json     the per-project routing manifest (topology · services · contracts)
     query-graph.mjs          deterministic helper: staleness gate · graph slices · topology detection
+  skills/create-readme/
+    SKILL.md                 the /create-readme procedure — a polished, scannable README (adapted from awesome-copilot)
   lib/list-projects.mjs      discovers projects by their wiki.context.md (powers /cairn-projects)
   lib/aggregate-graphs.mjs   multi-repo: per-repo staleness + service partition (powers /lodestar on N repos)
   lib/lint-wiki.mjs          deterministic structural lint: frontmatter · index↔files · links · markers · hot.md staleness · density · secrets (powers /cairn-lint)
@@ -191,6 +194,7 @@ package.json                 `npm test` → `node --test` (no dependencies)
 | `/cairn-upgrade` | pull framework fixes from a source Cairn checkout into this deployed kit (dry-run first; never touches your config or wiki) |
 | `/cairn-projects` | list every project (by its `wiki.context.md`) across your machine — filter by domain |
 | `/lodestar` | build/refresh the feature→file map (layer 3) — the part with Cairn's name on it |
+| `/create-readme` | write or refresh a polished, scannable `README.md` for the project — features-first, badge row + GitHub admonitions |
 
 ## Principles
 
@@ -207,17 +211,19 @@ The rules that keep the second brain from rotting:
 
 ## Provenance
 
-Built on [Karpathy's WikiLLM pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) +
-[understand-anything](https://github.com/Lum1104/Understand-Anything) code graphs. Maintenance mechanics (the
+Built on [Karpathy's WikiLLM pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), with
+an **optional**, pluggable code-graph provider (recommended:
+[understand-anything](https://github.com/Lum1104/Understand-Anything)). Maintenance mechanics (the
 `@generated` sentinel markers, the link-integrity / index-consistency lint) borrow from the broader
 WikiLLM-second-brain ecosystem; the **feature→file + code-graph + computed-staleness seam** is the part those
 tools don't cover — and the part Cairn exists to be. Patterns such as the warm `hot.md` cache, source-less
 `/cairn-save` capture, and the grep-baseline eval gate are **re-implemented from the ideas** (no code
 vendored) of the Claude + Obsidian ecosystem, notably
-[claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) (MIT) — credit to AgriciDaniel. Cairn
-bundles no third-party code — understand-anything
-is installed separately as a plugin (its own license applies), and WikiLLM is the upstream pattern it builds
-on.
+[claude-obsidian](https://github.com/AgriciDaniel/claude-obsidian) (MIT) — credit to AgriciDaniel. The
+**`/create-readme`** skill is adapted from the
+[github/awesome-copilot `create-readme` skill](https://github.com/github/awesome-copilot) (MIT). Cairn bundles
+no third-party code — any graph provider is installed separately (its own license applies), and WikiLLM is the
+upstream pattern it builds on.
 
 > [!NOTE]
 > Built with [Claude Code](https://claude.com/claude-code) — see [`CONTRIBUTORS.md`](CONTRIBUTORS.md).

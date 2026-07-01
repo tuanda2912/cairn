@@ -24,6 +24,13 @@ PROJECTS_ROOT="$HOME"
 CODE_MAIN="../code"
 CODE_REPOS="main"
 
+# 2b) Code graph provider — OPTIONAL. A code graph sharpens /lodestar (feature→file) and the fail-closed
+#     staleness gate, but Cairn works fully as a WIKI-ONLY second brain without one. Leave "auto" to use a
+#     graph if one is present, else run graph-free. Recommended provider when you want the extra power:
+#     understand-anything (install on demand). Future/pluggable: ctags · scip · custom (one adapter each).
+#         GRAPH_PROVIDER="auto"   # auto | none | understand-anything
+GRAPH_PROVIDER="auto"
+
 # 3) Raw source docs the wiki is built FROM (requirements, ADRs, design docs, papers — anything).
 #    a) DOCS_SOURCE — a direct path to the source folder (local dir, network mount, Google
 #       Drive/Dropbox/iCloud/OneDrive path, anything). >>> If set, this WINS.
@@ -53,6 +60,19 @@ resolve_code_repo() {
   var="CODE_$(printf '%s' "$alias_in" | tr '[:lower:]-' '[:upper:]_')"
   eval "val=\${$var:-}"   # portable indirection, set -u-safe (the :- yields '' for an unset CODE_<ALIAS>)
   if [ -n "${val:-}" ]; then expand_path "$val"; else expand_path "$alias_in"; fi
+}
+
+# Resolve the effective graph provider. "auto" → understand-anything if a graph is present in the main
+# code repo, else "none". Explicit values pass through. Commands that use a graph call this and skip their
+# graph steps gracefully when it prints "none" (Cairn stays wiki-only).
+resolve_graph_provider() {
+  case "${GRAPH_PROVIDER:-auto}" in
+    none) printf 'none' ;;
+    auto)
+      _c="$(resolve_code_repo main)"
+      if [ -f "$_c/.understand-anything/knowledge-graph.json" ]; then printf 'understand-anything'; else printf 'none'; fi ;;
+    *) printf '%s' "$GRAPH_PROVIDER" ;;
+  esac
 }
 
 # Resolve the RAW docs source folder (the thing the mirror is synced FROM). DOCS_SOURCE wins;

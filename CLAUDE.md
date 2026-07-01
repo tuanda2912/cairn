@@ -14,9 +14,14 @@ know?"* and *"if I change feature X, which files move?"*
 
 | # | Layer | What it is | Built/maintained by |
 |---|---|---|---|
-| 1 | **Code graph** | a knowledge graph of the codebase (files, layers, tags, summaries) | `understand-anything` — run `/understand <repo>` |
+| 1 | **Code graph** *(optional)* | a knowledge graph of the codebase (files, layers, tags, summaries) | an optional graph **provider** (recommended: `understand-anything` — `/understand <repo>`; pluggable via `GRAPH_PROVIDER`) |
 | 2 | **WikiLLM wiki** | the LLM-maintained knowledge base (Karpathy pattern) | you, following this manual |
-| 3 | **Feature → file map** | the traceability layer (`feature → capability → files` + gaps) | `/lodestar` (consumes layers 1 + 2) |
+| 3 | **Feature → file map** | the traceability layer (`feature → capability → files` + gaps) | `/lodestar` (consumes layer 2; **sharper with** layer 1) |
+
+**Layer 1 is optional.** Cairn is a fully functional **wiki-only** second brain without any code graph. A
+graph *sharpens* `/lodestar` (auto `capability→files`) and the fail-closed staleness gate — but when none is
+configured (`GRAPH_PROVIDER=none`, or none detected), those steps **degrade gracefully** rather than block.
+understand-anything is the recommended provider, never a hard dependency.
 
 **Where it lives — the workspace, never inside a code repo.** The framework + wiki sit at the **workspace
 root** (the dir holding `.claude/` + `wiki/` + `wiki.context.md`), which sits **beside or above** your code.
@@ -39,10 +44,14 @@ gets to enforcing this load.
 
 ---
 
-## Layer 1 — the code graph (understand-anything)
+## Layer 1 — the code graph (optional, pluggable)
 
-- **Build/refresh:** `/understand <repo>` (incremental after the first run). The graph lands at
-  `<repo>/.understand-anything/knowledge-graph.json`.
+- **Optional by design.** Cairn works wiki-only. A code graph is an *enhancement*; skip this whole layer and
+  everything else still runs (lodestar builds a wiki-derived map; the staleness gate is simply not armed).
+  The provider is chosen by `GRAPH_PROVIDER` in `wiki.config.sh` (`auto` = use understand-anything if a graph
+  is present, else none). Any provider that emits the canonical `{nodes, layers, meta}` shape can plug in.
+- **Build/refresh (understand-anything):** `/understand <repo>` (incremental after the first run). The graph
+  lands at `<repo>/.understand-anything/knowledge-graph.json`.
 - **It is the `capability → files` substrate** for `/lodestar` — every file is tagged + assigned a layer.
   Do **not** hand-maintain a parallel file index; re-run `/understand` instead.
 - **Refresh discipline:** the graph is a derived snapshot. Re-run after meaningful code changes; treat its
@@ -119,9 +128,9 @@ The **`/cairn-*` commands** (in `.claude/commands/`) automate this loop — the 
 operations above are what they run. Configure paths once with `/cairn-setup`; check deps with `/cairn-doctor`.
 
 ```
-setup:        install understand-anything · copy .claude/ + this CLAUDE.md · /cairn-setup · /cairn-doctor
-bootstrap:    /understand <code>   →   build the wiki (or /cairn-rebuild)   →   /lodestar
-keep fresh:   /cairn-sync-all  =  /cairn-sync-docs  →  /cairn-sync-code  →  /lodestar   (all incremental)
+setup:        copy .claude/ + this CLAUDE.md · /cairn-setup · /cairn-doctor   (optionally install a graph provider)
+bootstrap:    (optional /understand <code>)   →   build the wiki (or /cairn-rebuild)   →   /lodestar
+keep fresh:   /cairn-sync-all  =  /cairn-sync-docs  →  /cairn-sync-code  →  /lodestar   (all incremental; graph steps skip when GRAPH_PROVIDER=none)
               docs changed → re-ingest · code changed → re-derive code pages · then re-map features → files
 verify:       /cairn-lint   — health-check what was generated (structural + per-page staleness + density + secrets + semantic); --fix the safe ones
 publish:      /cairn-guard  — fail-closed content scan for leaked secrets before a public wiki goes out

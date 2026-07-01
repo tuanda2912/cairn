@@ -35,12 +35,18 @@ echo "Core CLI:"
 command -v git   >/dev/null && ok git   "$(git --version)"                       || no git   "https://git-scm.com  (or: xcode-select --install)"
 command -v rsync >/dev/null && ok rsync "$(rsync --version 2>/dev/null|head -1)"   || warn rsync "only needed by /cairn-sync-docs; ships with macOS, else apt/brew install rsync"
 
-echo "Code sync (/cairn-sync-code, /lodestar):"
-command -v node >/dev/null && { v=$(node -v|tr -d v); ok node "v$v"; [ "${v%%.*}" -ge 22 ] || warn node "need ≥22 (have v$v)"; } || no node "brew install node   (≥22)"
-command -v pnpm >/dev/null && { p=$(pnpm -v); ok pnpm "$p"; [ "${p%%.*}" -ge 10 ] || warn pnpm "need ≥10 (have $p)"; } || warn pnpm "only for the understand-anything plugin's FIRST build — skip if the plugin already built. corepack enable pnpm (or npm i -g pnpm)"
-ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* >/dev/null 2>&1 \
-  && ok ua-plugin "$(ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* | tail -1 | xargs basename)" \
-  || no ua-plugin "not at the Claude Code plugin cache (other CLIs install elsewhere — see the UA repo). In Claude Code: /plugin marketplace add Lum1104/Understand-Anything → /plugin install understand-anything"
+echo "Code graph (OPTIONAL — Cairn works wiki-only; a graph only sharpens /lodestar + staleness):"
+GP="$(type resolve_graph_provider >/dev/null 2>&1 && resolve_graph_provider || echo auto)"
+ok graph-provider "$GP${GP:+  (GRAPH_PROVIDER=${GRAPH_PROVIDER:-auto})}"
+command -v node >/dev/null && { v=$(node -v|tr -d v); ok node "v$v"; [ "${v%%.*}" -ge 22 ] || warn node "need ≥22 (have v$v)"; } || warn node "brew install node (≥22) — needed by the zero-dep lib/ helpers"
+if [ "$GP" = "none" ]; then
+  warn ua-plugin "no graph provider active — fine (wiki-only). To enable one: set GRAPH_PROVIDER + install it (recommended: understand-anything)."
+else
+  command -v pnpm >/dev/null && { p=$(pnpm -v); ok pnpm "$p"; } || warn pnpm "only for understand-anything's FIRST build — skip if already built. corepack enable pnpm"
+  ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* >/dev/null 2>&1 \
+    && ok ua-plugin "$(ls -d "$HOME/.claude/plugins/cache/understand-anything/understand-anything/"* | tail -1 | xargs basename)" \
+    || warn ua-plugin "GRAPH_PROVIDER wants understand-anything but it's not installed — optional. In Claude Code: /plugin marketplace add Lum1104/Understand-Anything → /plugin install understand-anything (or set GRAPH_PROVIDER=none)"
+fi
 
 echo "Docs conversion (optional — only for binary docx/xlsx/pdf/pptx sources):"
 command -v uv >/dev/null && ok uv "$(uv --version 2>/dev/null)" || warn uv "brew install uv   (only if you have binary source docs)"
@@ -58,8 +64,9 @@ Summarise: which commands are **ready** vs **blocked**, and by what.
   `install` (or agrees), run the matching command for **each missing one**, then re-run Step 1. ⚠️
   Installing software is side-effecting — **ask before installing** unless `install` was passed.
 - **Not auto-installable** — explain these must be done by the user:
-  - **understand-anything plugin** — `/plugin marketplace add Lum1104/Understand-Anything` then
-    `/plugin install understand-anything` (https://github.com/Lum1104/Understand-Anything).
+  - **understand-anything plugin** *(optional — only if you want a code graph)* — `/plugin marketplace add
+    Lum1104/Understand-Anything` then `/plugin install understand-anything`
+    (https://github.com/Lum1104/Understand-Anything). Skip it entirely with `GRAPH_PROVIDER=none` (wiki-only).
   - **The wiki itself** — `/cairn-sync-*` *maintain* the wiki; they don't bootstrap it. Carry `$WIKI_DIR/`
     over (recommended), or use **`/cairn-rebuild`** to regenerate it from sources + code graph.
 

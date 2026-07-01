@@ -28,15 +28,20 @@ LINT=.claude/lib/lint-wiki.mjs ; QG=.claude/skills/lodestar/query-graph.mjs
 echo "=== 1. structural lint ($WIKI_DIR) ==="
 node "$LINT" "$WIKI_DIR"; echo "(structural exit: $?  — 0 clean/warnings · 1 errors · 2 no wiki dir)"
 
-echo ; echo "=== 2. fail-closed staleness gate (feature-map graph vs HEAD) ==="
+echo ; echo "=== 2. fail-closed staleness gate (only armed when a graph provider is active) ==="
+GP="$(type resolve_graph_provider >/dev/null 2>&1 && resolve_graph_provider || echo none)"
+if [ "$GP" = "none" ]; then
+  echo "  graph provider: none — staleness gate not armed (Cairn is wiki-only here). NOT a blocker."
+else
 for a in $CODE_REPOS; do
   CODE="$(resolve_code_repo "$a")" ; G="$CODE/.understand-anything/knowledge-graph.json"
   if [ -f "$G" ]; then
     echo "--- repo:$a ($CODE) ---" ; node "$QG" stale "$G" "$CODE"; echo "(stale exit: $?  — 0 fresh · 1 stale/missing · 2 broken)"
   else
-    echo "--- repo:$a ($CODE) — no code graph; run /cairn-sync-code (or /understand $CODE) first ---"
+    echo "--- repo:$a ($CODE) — provider '$GP' set but no graph yet; run /cairn-sync-code to build it ---"
   fi
 done
+fi
 
 echo ; echo "=== 3. surgical per-page staleness (which wiki pages a changed source owns) ==="
 MF="${MANIFEST:-.cairn-manifest.json}"
@@ -46,8 +51,9 @@ node .claude/lib/stale-pages.mjs "$MF" $BASES; echo "(per-page stale exit: $?  �
 ```
 
 The script (`lint-wiki.mjs`) prints a JSON report on stdout and a `✗ / ⚠ / ℹ` summary on stderr. Read both.
-**Fail-closed:** a structural exit of `1`, or any repo's graph-staleness exit of `1`/`2`, is a **BLOCKER** —
-the map is resolving through a stale graph and is lying until refreshed. Step 3's exit `1` is the **surgical**
+**Fail-closed:** a structural exit of `1` is always a **BLOCKER**. **When a graph provider is active**, any
+repo's graph-staleness exit of `1`/`2` is *also* a BLOCKER — the map is resolving through a stale graph and is
+lying until refreshed. (Wiki-only / `GRAPH_PROVIDER=none` ⇒ no graph gate — not a blocker.) Step 3's exit `1` is the **surgical**
 signal: the listed pages (and only those) are downstream of a changed/deleted source — refresh exactly them
 via `/cairn-sync-docs`; the rest of the wiki is trustworthy. (No `.cairn-manifest.json` yet ⇒ exit 0 with a
 note; run a sync once to enable it.)

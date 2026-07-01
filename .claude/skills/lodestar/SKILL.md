@@ -11,9 +11,10 @@ map from each **user-facing feature** → the **capabilities/services** → the 
 gaps**, so you can answer *"if I change feature X, which files move?"* — including the cross-service edges
 grep and the compiler can't see.
 
-It is the third layer of the second brain, sitting between the **requirements/feature wiki** and the
-**understand-anything code graph**. It does **not** replace code search — the live source stays the index;
-this persists only what you *can't* grep (intent, gaps, cross-service contracts).
+It is the third layer of the second brain, sitting between the **requirements/feature wiki** and (optionally)
+a **code graph**. It runs **wiki-only when no graph is configured** (`GRAPH_PROVIDER=none`) — a graph just
+makes the `capability→files` layer auto-refresh and arms the staleness gate. It does **not** replace code
+search — the live source stays the index; this persists only what you *can't* grep (intent, gaps, contracts).
 
 ## Inputs
 
@@ -46,7 +47,11 @@ Report progress at each phase.
      **offer to refresh** before continuing: `/understand <repoDir>` (incremental). Do **not** silently build
      on a stale graph — a stale map gives false confidence (worse than honest grep). If the user declines the
      refresh, proceed but **stamp the output as stale** and warn in the result.
-3. If no graph exists at all → tell the user to run `/understand <repoDir>` first; this skill consumes its output.
+3. **If no graph exists / `GRAPH_PROVIDER=none` → run WIKI-ONLY** (the graph is optional). Skip the staleness
+   gate (nothing to be stale against) and source the `capability→files` layer from the wiki's own
+   feature/subsystem pages instead of a graph (see Phase 2). Stamp the output `graph: none (wiki-derived)`.
+   Everything downstream still works — you forgo only the auto-refreshing file tags and the fail-closed gate.
+   Suggest installing a provider only if the user wants those.
 
 ### Phase 1 — Topology
 - Read `topology` from config. If unset, **detect & confirm**: signals for *microservices* = multiple code
@@ -56,9 +61,12 @@ Report progress at each phase.
   cross-module propagation net, so the map only needs feature→capability→files.
 - **microservices** ⇒ do everything (the cross-service contracts are the payload).
 
-### Phase 2 — Capability layer (reuse the graph; never hand-tag files)
-- The understand-anything graph already tags every file and assigns it a layer — **that is the
-  `capability→files` layer, refreshed for free on `/understand`.** Do not build a parallel tagger.
+### Phase 2 — Capability layer (reuse the graph if present; never hand-tag files)
+- **With a graph:** the provider already tags every file and assigns it a layer — **that is the
+  `capability→files` layer, refreshed for free when the provider re-runs.** Do not build a parallel tagger.
+- **Wiki-only (no graph):** use the wiki's **subsystem pages** as the capability layer — the subsystem slug
+  *is* the capability tag, and its `## Code map` section *is* `capability→files`. No auto-refresh; it's exactly
+  as fresh as the wiki you maintain.
 - If `capabilitySource = subsystem-pages` (wiki already code-shaped): the **subsystem slug is the capability
   tag** — reuse it; `capability→files` is the subsystem page's `## Code map`.
 - If `capabilitySource = graph-tags`: derive a **small controlled vocabulary** from the graph's tags

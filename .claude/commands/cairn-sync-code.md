@@ -20,6 +20,8 @@ Target repo: **$ARGUMENTS** (default `main` when empty). The alias (or a literal
    : "${WIKI_DIR:=wiki}"
    type resolve_code_repo >/dev/null 2>&1 || resolve_code_repo(){ echo "${1:-../code}"; }
    [ -d "$WIKI_DIR" ] || { echo "❌ No $WIKI_DIR/ here — run from the workspace root, or bootstrap the wiki with /cairn-rebuild (the kit ships a starter $WIKI_DIR/)."; exit 1; }
+   GP="$(type resolve_graph_provider >/dev/null 2>&1 && resolve_graph_provider || echo none)"
+   if [ "$GP" = "none" ]; then echo "ℹ️ No code-graph provider active (GRAPH_PROVIDER=none / none detected) — nothing to sync; Cairn is wiki-only here. Set GRAPH_PROVIDER and install a provider (recommended: understand-anything) to enable code-graph sync."; exit 0; fi
    TARGET_NAME="$ARGUMENTS"
    TARGET_NAME="${TARGET_NAME#"${TARGET_NAME%%[![:space:]]*}"}"   # ltrim
    TARGET_NAME="${TARGET_NAME%"${TARGET_NAME##*[![:space:]]}"}"   # rtrim (preserve internal spaces — paths may contain them)
